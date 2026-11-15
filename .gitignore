@@ -1,0 +1,25 @@
+# teacher runtime (clone it yourself, see README)
+stable-audio-3/
+
+# generated audio and training outputs
+renders/
+ae_v*/*
+flow_v*/*
+*.log
+
+# ...except the two checkpoints export_onnx.py needs
+!ae_v2/ae.pt
+!flow_v1/flow.pt
+
+__pycache__/
+.venv/
+.DS_Store
+.claude/
+
+# private working notes
+CLAUDE.md
+PLAN.md
+
+# Cloudflare tooling
+.wrangler/
+node_modules/

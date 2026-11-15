@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tinygroove TG-16</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" crossorigin href="https://fonts.googleapis.com/css2?family=Michroma&family=Permanent+Marker&family=Pixelify+Sans:wght@400;600&display=swap">
+<style>
+:root{
+  --shell:#d8d5cf; --shell-lo:#a9a5ae; --shell-hi:#f4f2ee; --ink:#2a2433;
+  --jelly:#ff7a1a; --jelly-deep:#c94f00;
+  --lcd:#c3e04b; --lcd-ink:#20300c; --lcd-dim:#9bb83a;
+  --rubber:#3b3a44; --rubber-hi:#55535f;
+  --aqua:#33d6c8; --pink:#ff4fa3; --lime:#b6f23c;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+html{overflow-x:clip}
+body{
+  /* a beech-laminate bedroom-studio desk under a warm lamp */
+  background:
+    radial-gradient(ellipse 70% 55% at 30% 0, rgba(255,236,190,.55), transparent 70%),
+    radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(40,18,4,.55) 100%),
+    repeating-linear-gradient(0deg, transparent 0 213px, rgba(70,35,8,.35) 213px 215px, rgba(255,230,180,.25) 215px 216px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='426'%3E%3Cfilter id='w' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004 0.22' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .22 0 0 0 0 .06 0 0 0 -1.7 1.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23w)'/%3E%3C/svg%3E"),
+    #d6a25f;
+  color:var(--ink); font-family:Michroma, "Eurostile", "Trebuchet MS", sans-serif;
+  display:flex; flex-direction:column; align-items:center; padding:56px 16px 90px; overflow-x:clip;
+}
+.scene{position:relative; width:min(1060px,100%); min-width:0}
+.prop{position:absolute; pointer-events:none; z-index:0; font-family:"Permanent Marker",cursive; color:#1c2f7a}
+.cd{ /* a burned CD-R, marker-labelled */
+  width:230px; height:230px; left:-92px; top:-70px; border-radius:50%; transform:rotate(-14deg);
+  background:
+    radial-gradient(circle, transparent 0 8%, #bdb9c6 8% 9.5%, rgba(255,255,255,.75) 9.5% 17%, #c9c6d2 17% 18%, transparent 18%),
+    conic-gradient(from 20deg, #e9e7ee, #bfe9ff 8%, #f3d6ff 14%, #fff3c4 20%, #e9e7ee 28%, #d5d2dc 50%, #c8f5e4 58%, #ffd9e6 64%, #e9e7ee 72%, #d5d2dc);
+  box-shadow:0 5px 10px rgba(40,18,4,.45), 0 0 0 1px rgba(0,0,0,.15) inset;
+}
+.cd b{position:absolute; left:26px; top:34px; font-weight:400; font-size:17px; line-height:1.05; transform:rotate(8deg)}
+.cd i{position:absolute; left:120px; bottom:28px; font-style:normal; font-size:13px; color:#b3122b; transform:rotate(-6deg)}
+.floppy{ /* 3.5 inch disk */
+  width:170px; height:176px; right:-70px; bottom:-58px; transform:rotate(11deg); border-radius:5px 16px 5px 5px;
+  background:linear-gradient(150deg,#3a4f93,#27376b); box-shadow:0 6px 12px rgba(40,18,4,.5), 0 1px 0 rgba(255,255,255,.25) inset;
+}
+.floppy::before{content:""; position:absolute; left:38px; top:0; width:92px; height:54px; border-radius:0 0 3px 3px;
+  background:linear-gradient(90deg,#c9ccd3,#eef0f3 40%,#aeb2bb); box-shadow:22px 8px 0 -2px #27376b inset}
+.floppy::after{content:""; position:absolute; left:16px; right:16px; bottom:0; height:96px; background:
+  repeating-linear-gradient(0deg,transparent 0 17px,#9db7e8 17px 18px), #fbfaf2; border-radius:3px 3px 0 0}
+.floppy b{position:absolute; left:26px; bottom:22px; z-index:1; font-weight:400; font-size:15px; line-height:1.2; transform:rotate(-3deg)}
+.ring{ /* someone's tea */
+  width:150px; height:150px; left:-36px; bottom:-52px; border-radius:50%;
+  background:radial-gradient(circle, transparent 59%, rgba(92,48,10,.34) 62%, rgba(92,48,10,.16) 66%, transparent 69%);
+}
+.cable{right:70px; top:-56px; width:210px; height:120px; overflow:visible}
+@media (max-width:820px){ body{padding:34px 12px 60px} .cd{left:-120px; top:-96px} .floppy{right:-104px; bottom:-76px} .cable{display:none} }
+button,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--aqua); outline-offset:2px}
+
+.unit{
+  width:100%; position:relative; z-index:1; padding:22px 24px 26px;
+  border-radius:38px 38px 54px 54px / 34px 34px 44px 44px;
+  background:linear-gradient(168deg,var(--shell-hi) 0,var(--shell) 28%,var(--shell-lo) 100%);
+  transform:rotate(-.6deg);
+  box-shadow:0 2px 0 #fff inset, 0 -6px 14px rgba(60,40,80,.35) inset, 0 26px 34px rgba(40,18,4,.55), 0 60px 80px rgba(40,18,4,.3), 0 4px 0 #6f6a78;
+}
+.unit::before,.unit::after{ /* screws */
+  content:""; position:absolute; top:16px; width:13px; height:13px; border-radius:50%;
+  background:conic-gradient(#888 0 25%,#ddd 0 50%,#888 0 75%,#ddd 0); box-shadow:0 1px 1px rgba(0,0,0,.5) inset;
+}
+.unit::before{left:18px}.unit::after{right:18px; transform:rotate(38deg)}
+
+.brand{display:flex; align-items:baseline; gap:14px; padding:0 22px 12px; flex-wrap:wrap}
+.brand h1{margin:0; font-size:22px; letter-spacing:-.5px; font-weight:400}
+.brand h1 b{font-weight:400; color:var(--jelly-deep)}
+.brand p{margin:0; font-size:10px; opacity:.7}
+.sticker{
+  margin-left:auto; font:600 12px/1.15 "Pixelify Sans",monospace; background:#fff36b; color:#3a2a00; padding:5px 9px;
+  transform:rotate(3deg); box-shadow:1px 2px 0 rgba(0,0,0,.25); max-width:190px;
+}
+
+.deck{display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:20px}
+.deck > section{min-width:0}
+@media (max-width:820px){ .deck{grid-template-columns:minmax(0,1fr)} .pad{font-size:11px; padding:5px} .knob{width:48px;height:48px} .k output{min-width:0} .unit{transform:none; padding:18px 14px 22px} .sticker{margin-left:0} }
+
+/* LCD */
+.lcd{
+  background:var(--lcd); color:var(--lcd-ink); border-radius:10px; padding:10px 12px 8px; position:relative;
+  box-shadow:0 0 0 5px #24212b, 0 0 0 7px #8b8792, 0 3px 14px rgba(0,0,0,.55) inset, 0 0 26px rgba(195,224,75,.35);
+  font-family:"Pixelify Sans",monospace; margin:6px 7px 20px;
+}
+.lcd::after{content:""; position:absolute; inset:0; border-radius:10px; pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(32,48,12,.07) 2px 3px)}
+.lcd .top{display:flex; justify-content:space-between; gap:8px; font-size:15px; font-weight:600}
+.lcd canvas{width:100%; height:auto; image-rendering:pixelated; display:block; margin:4px 0}
+.lcd .msg{font-size:15px; min-height:1.3em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+/* pads */
+.bay{
+  padding:14px; border-radius:26px; position:relative;
+  background:linear-gradient(160deg,#fa9a45,#e0680f); isolation:isolate;
+  box-shadow:0 2px 3px rgba(255,255,255,.7) inset, 0 -8px 16px rgba(120,40,0,.45) inset, 0 3px 0 var(--jelly-deep);
+}
+.pads{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px}
+.pad{
+  aspect-ratio:1; border:0; border-radius:12px; cursor:pointer; position:relative; padding:6px; text-align:left;
+  background:radial-gradient(circle at 30% 22%,var(--rubber-hi),var(--rubber) 62%);
+  box-shadow:0 4px 0 #1c1b22, 0 6px 8px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.18) inset;
+  color:#e9e6f0; font:600 13px/1 "Pixelify Sans",monospace; touch-action:manipulation; user-select:none;
+  transition:transform .05s, box-shadow .05s;
+}
+.pad{overflow:hidden; overflow-wrap:anywhere}
+.pad .key{position:absolute; right:7px; bottom:6px; opacity:.45; font-size:12px}
+.pad .led{position:absolute; left:7px; bottom:7px; width:9px; height:9px; border-radius:50%; background:#22202a; box-shadow:0 0 0 1px #111}
+.pad.sel{box-shadow:0 4px 0 #1c1b22, 0 0 0 3px var(--led), 0 6px 8px rgba(0,0,0,.45)}
+.pad.hit{transform:translateY(3px) scale(.97); box-shadow:0 1px 0 #1c1b22, 0 0 18px var(--led)}
+.pad.hit .led{background:var(--led); box-shadow:0 0 8px var(--led)}
+.pad.cooking{opacity:.55}
+.pad.cooking .led{background:var(--led); animation:blink .5s steps(2) infinite}
+@keyframes blink{50%{opacity:.1}}
+.steps{display:grid; grid-template-columns:repeat(16,minmax(0,1fr)); gap:5px; margin:14px 4px 0}
+.steps i{height:8px; border-radius:3px; background:#5a2a05; box-shadow:0 1px 1px rgba(0,0,0,.5) inset}
+.steps i:nth-child(4n+1){background:#7a3a08}
+.steps i.on{background:#fff7c2; box-shadow:0 0 9px #fff2a0}
+
+/* right side */
+.panel{display:flex; flex-direction:column; gap:14px; padding-top:6px}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:stretch}
+.group{min-width:0; border:1.5px solid rgba(42,36,51,.35); border-radius:14px; padding:14px 12px 10px; position:relative}
+.group > .tag{position:absolute; top:-8px; left:12px; padding:0 6px; font-size:9.5px; background:var(--shell); border-radius:4px}
+.btn{
+  border:0; cursor:pointer; border-radius:10px; padding:10px 12px; font-size:11px; background:linear-gradient(#f6f4f0,#bdb9c2);
+  box-shadow:0 3px 0 #77727f, 0 5px 6px rgba(0,0,0,.3); min-height:44px;
+}
+.btn:active,.btn[aria-pressed=true]{transform:translateY(2px); box-shadow:0 1px 0 #77727f}
+.btn[aria-pressed=true]{background:linear-gradient(#ffe9a8,#ffb23d)}
+.btn.big{background:linear-gradient(#ffb070,var(--jelly)); color:#3a1500; box-shadow:0 3px 0 var(--jelly-deep), 0 5px 6px rgba(0,0,0,.3); flex:1.4}
+.btn.play{background:linear-gradient(#aef3ea,var(--aqua)); box-shadow:0 3px 0 #17877d, 0 5px 6px rgba(0,0,0,.3); flex:1}
+.btn:disabled{opacity:.5; cursor:wait}
+.grooves{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px}
+.grooves .btn small{display:block; font:400 12px "Pixelify Sans",monospace; opacity:.75; margin-top:3px}
+
+.pick{display:flex; align-items:center; gap:6px; margin-top:6px}
+.pick:first-of-type{margin-top:0}
+.pick label{font-size:9.5px; width:58px; flex:none}
+.pick select{
+  flex:1; min-width:0; appearance:none; border:0; border-radius:6px; padding:8px 10px; min-height:40px;
+  background:var(--lcd); color:var(--lcd-ink); font:600 16px "Pixelify Sans",monospace; box-shadow:0 0 0 3px #24212b, 0 2px 8px rgba(0,0,0,.45) inset;
+}
+.pick .btn{padding:6px 10px; min-height:40px; min-width:40px}
+
+.knobs{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; text-align:center}
+.k{display:flex; flex-direction:column; align-items:center; gap:5px}
+.knob{
+  width:54px; height:54px; border-radius:50%; position:relative; cursor:ns-resize; touch-action:none;
+  background:conic-gradient(from 225deg,var(--c,var(--jelly)) calc(var(--v)*270deg),#6d6876 0 270deg,transparent 0);
+  box-shadow:0 2px 4px rgba(0,0,0,.4);
+}
+.knob i{position:absolute; inset:6px; border-radius:50%; transform:rotate(calc(-135deg + var(--v)*270deg));
+  background:radial-gradient(circle at 35% 28%,#fdfcfa,#a5a1ab 70%); box-shadow:0 3px 5px rgba(0,0,0,.45), 0 -2px 3px rgba(0,0,0,.2) inset}
+.knob i::after{content:""; position:absolute; left:50%; top:4px; width:4px; height:12px; margin-left:-2px; border-radius:2px; background:var(--ink)}
+.knob.auto{background:conic-gradient(from 225deg,#6d6876 0 270deg,transparent 0)}
+.knob.auto i::after{background:#9a96a2}
+.k span{font-size:9.5px}
+.k output{font:600 13px "Pixelify Sans",monospace; background:#24212b; color:var(--lcd); border-radius:4px; padding:1px 6px; min-width:52px}
+/* the manual, lying on the desk below the machine */
+.manual{
+  position:relative; width:min(940px,100%); margin-top:96px; padding:44px 52px 30px 64px; color:#2a2433;
+  background:linear-gradient(90deg,#e6dfcc 0,#f5f0e2 26px,#f7f3e7 100%); border-radius:2px 6px 6px 2px;
+  box-shadow:3px 3px 0 -1px #efe9d8, 3px 4px 0 -1px #c9c1ab, 6px 7px 0 -2px #efe9d8, 6px 8px 0 -2px #c9c1ab, 0 22px 34px rgba(40,18,4,.42);
+  font:15px/1.6 "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+.manual::before,.manual::after{ /* staples */
+  content:""; position:absolute; left:11px; width:5px; height:34px; border-radius:2px; background:linear-gradient(90deg,#8d8a92,#e3e1e6,#8d8a92);
+  box-shadow:1px 1px 1px rgba(0,0,0,.3);
+}
+.manual::before{top:22%}.manual::after{bottom:22%}
+.manual header{display:flex; justify-content:space-between; align-items:baseline; gap:12px; border-bottom:2px solid #2a2433; padding-bottom:10px; margin-bottom:26px}
+.manual header span{font:10px Michroma,sans-serif}
+.manual h2{font:400 26px/1.15 Michroma,sans-serif; letter-spacing:-.5px; margin:0}
+.manual h3{font:400 13px/1.3 Michroma,sans-serif; color:var(--jelly-deep); margin:30px 0 8px}
+.manual p{margin:0 0 12px; max-width:62ch}
+.manual .lead{font-size:18px; line-height:1.5; max-width:54ch}
+.manual .cols{display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); gap:40px}
+.manual ol,.manual ul{margin:0 0 12px; padding-left:20px; max-width:62ch}
+.manual li{margin-bottom:7px}
+.manual dl{margin:0; display:grid; grid-template-columns:auto 1fr; gap:6px 14px; font-size:13.5px}
+.manual dt{font:400 9.5px/1.9 Michroma,sans-serif}
+.manual dd{margin:0; border-bottom:1px dotted #a39d8c; padding-bottom:5px}
+.manual aside{align-self:start; border:1.5px solid #2a2433; border-radius:10px; padding:16px 16px 12px; position:relative; margin-top:30px}
+.manual aside h3{margin-top:0}
+.manual .scrawl{position:absolute; right:-18px; bottom:-34px; font:17px "Permanent Marker",cursive; color:#1c2f7a; transform:rotate(-5deg)}
+.flowchart{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:14px; margin:22px 0 4px}
+.flowchart div{background:var(--lcd); color:var(--lcd-ink); border-radius:6px; padding:9px 10px 8px; box-shadow:0 0 0 2px #24212b;
+  font:600 14px/1.2 "Pixelify Sans",monospace; position:relative}
+.flowchart div small{display:block; font-weight:400; margin-top:3px; opacity:.85}
+.flowchart div:not(:last-child)::after{content:""; position:absolute; right:-14px; top:50%; margin-top:-7px; border:7px solid transparent; border-left-color:#24212b; border-right-width:0; z-index:1}
+.manual footer{margin-top:30px; padding-top:10px; border-top:1px solid #a39d8c; font:9.5px Michroma,sans-serif; display:flex; justify-content:space-between; gap:12px}
+@media (max-width:820px){ .manual{padding:30px 20px 22px 34px; margin-top:80px} .manual .cols{grid-template-columns:minmax(0,1fr); gap:8px} .manual h2{font-size:20px}
+  .manual .scrawl{right:6px} .manual footer{margin-top:52px} .flowchart{grid-template-columns:minmax(0,1fr); gap:12px} .flowchart div:not(:last-child)::after{right:auto; left:18px; top:auto; bottom:-12px; margin:0; border:7px solid transparent; border-top-color:#24212b; border-bottom-width:0} }
+@media (prefers-reduced-motion:reduce){ .pad,.btn{transition:none} .pad.cooking .led{animation:none} }
+</style>
+</head>
+<body>
+<div class="scene">
+<div class="prop cd" aria-hidden="true"><b>house<br>drumz<br>2003</b><i>do NOT erase!!</i></div>
+<svg class="prop cable" viewBox="0 0 210 120" aria-hidden="true"><path d="M150 120 C150 60 60 95 40 40 S90 -30 215 -10" fill="none" stroke="#3a2a05" stroke-width="12" stroke-linecap="round" opacity=".35" transform="translate(3 5)"/><path d="M150 120 C150 60 60 95 40 40 S90 -30 215 -10" fill="none" stroke="#e9c21c" stroke-width="9" stroke-linecap="round"/><path d="M150 120 C150 60 60 95 40 40 S90 -30 215 -10" fill="none" stroke="#fff3a6" stroke-width="2" stroke-linecap="round" opacity=".7" transform="translate(-2 -2)"/><rect x="141" y="92" width="18" height="30" rx="3" fill="#2b2a33"/></svg>
+<div class="prop ring" aria-hidden="true"></div>
+<div class="prop floppy" aria-hidden="true"><b>TG-16 OS<br>disk 1 of 1</b></div>
+<main class="unit">
+  <header class="brand">
+    <h1>tiny<b>groove</b> TG-16</h1>
+    <p>dream sampler for house drums</p>
+    <div class="sticker">contains 5.3 million very small drummers. do not shake.</div>
+  </header>
+
+  <div class="deck">
+    <section aria-label="Pads and display">
+      <div class="lcd">
+        <div class="top"><span id="packname">no pack yet</span><span id="padname"></span></div>
+        <canvas id="scr" width="168" height="52" aria-hidden="true"></canvas>
+        <div class="msg" id="msg" role="status">waking the drummers…</div>
+      </div>
+      <div class="bay">
+        <div class="pads" id="pads"></div>
+        <div class="steps" id="steps" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Controls">
+      <div class="row">
+        <button class="btn play" id="play" disabled>Play</button>
+        <button class="btn big" id="regen" disabled>New pack</button>
+        <button class="btn" id="save" disabled>Save pack (.zip)</button>
+      </div>
+
+      <div class="group"><span class="tag">groove</span>
+        <div class="grooves" id="grooves"></div>
+      </div>
+
+      <div class="group"><span class="tag">flavour</span>
+        <div class="pick"><label for="genre">genre</label>
+          <button class="btn" data-step="genre:-1" aria-label="Previous genre">&lt;</button>
+          <select id="genre"></select>
+          <button class="btn" data-step="genre:1" aria-label="Next genre">&gt;</button></div>
+        <div class="pick"><label for="machine">machine</label>
+          <button class="btn" data-step="machine:-1" aria-label="Previous machine">&lt;</button>
+          <select id="machine"></select>
+          <button class="btn" data-step="machine:1" aria-label="Next machine">&gt;</button></div>
+      </div>
+
+      <div class="group"><span class="tag" id="padtag">selected pad</span>
+        <div class="knobs" id="padknobs"></div>
+      </div>
+
+      <div class="group"><span class="tag">whole machine</span>
+        <div class="knobs" id="mainknobs"></div>
+      </div>
+    </section>
+  </div>
+</main>
+</div>
+
+<article class="manual">
+  <header><h2>What is this thing?</h2><span>TG-16 owner's manual</span></header>
+  <p class="lead">A drum machine with no samples inside. Every sound is made from scratch in your browser by a small neural network, each time you press New pack. Nothing is sent to a server.</p>
+
+  <div class="flowchart" role="img" aria-label="Noise goes into the generator, which runs 16 steps and produces 512 numbers; the decoder turns those into one second of sound.">
+    <div>noise<small>512 numbers</small></div><div>generator<small>16 steps</small></div><div>sound code<small>32 &times; 16 numbers</small></div><div>decoder<small>1 pass</small></div><div>drum<small>1 second</small></div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <h3>How a drum is made</h3>
+      <p>Each pad starts as 512 random numbers. A generator model nudges that noise sixteen times toward the drum you asked for: a kick, say, in a deep house flavour, a little longer than usual. A second, smaller model turns the result into one second of audio.</p>
+      <p>All sixteen pads are made together, in about a second on a recent laptop.</p>
+      <p>Turning a knob or changing genre keeps each pad's noise and changes only the request, so the sound shifts but stays recognisably the same drum. New pack rolls fresh noise for everything.</p>
+
+      <h3>What the controls ask for</h3>
+      <ul>
+        <li><b>Genre and machine</b> are words the model learned: 27 genres and 22 drum machines. Each genre also sets length and tone on every pad. Those settings were chosen by hand, not learned.</li>
+        <li><b>Length, tone and pitch</b> are properties measured on the training sounds: how long a hit lasts, how bright it is, and its strongest frequency. Each knob spans what was normal for that drum.</li>
+        <li><b>Tempo, swing, crunch, filter and level</b> are ordinary audio controls. No model involved.</li>
+      </ul>
+
+      <h3>How it was built</h3>
+      <ol>
+        <li>A large text-to-audio model, Stable Audio 3 (small-sfx), was asked for 50,004 one-second drum hits. The prompts were built from 172 words, each tested beforehand to check it changed the sound.</li>
+        <li>A simple gate threw out clips that were clipped, silent or contained two hits. 48,741 remained.</li>
+        <li>An autoencoder learned to squeeze each sound into 32 &times; 16 numbers and back again. Its decoder half is the one running here.</li>
+        <li>A flow-matching model learned to produce those numbers from noise, given the drum type, the prompt words and the measured knobs.</li>
+        <li>Both were exported to ONNX and run on this page with ONNX Runtime Web, on your graphics card where the browser allows it.</li>
+      </ol>
+
+      <h3>Known faults</h3>
+      <p>The cowbells are not good. Kicks carry less sub-bass than a real 808. Every sound is one second of mono, and the machine only knows the sixteen drums on its pads.</p>
+    </div>
+
+    <aside>
+      <h3>Specifications</h3>
+      <dl>
+        <dt>generator</dt><dd>4.24 million parameters</dd>
+        <dt>decoder</dt><dd>1.02 million parameters</dd>
+        <dt>download</dt><dd>22 MB for both</dd>
+        <dt>output</dt><dd>1 s, mono, 44.1 kHz</dd>
+        <dt>drums</dt><dd>16 types</dd>
+        <dt>trained on</dt><dd>48,741 clips from the teacher</dd>
+        <dt>training</dt><dd>85 + 19 minutes on one GPU</dd>
+        <dt>samples inside</dt><dd>none</dd>
+      </dl>
+      <span class="scrawl" aria-hidden="true">it really is this small!</span>
+    </aside>
+  </div>
+  <footer><span>tinygroove</span><span>page 1 of 1</span></footer>
+</article>
+
+<script src="vendor/ort.webgpu.min.js"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const LAYOUT = ["crash","ride","tambourine","cowbell", "tom","conga","bongo","clave",
+                "hat_closed","hat_open","shaker","rim", "kick","clap","snare","snap"];
+const KEYS = "1234qwerasdfzxcv";
+const LEDS = ["#ff7a1a","#ff7a1a","#ff7a1a","#ff7a1a","#ff4fa3","#ff4fa3","#ff4fa3","#ff4fa3",
+              "#33d6c8","#33d6c8","#33d6c8","#33d6c8","#b6f23c","#b6f23c","#b6f23c","#b6f23c"];
+const NICE = {hat_closed:"closed hat", hat_open:"open hat"};
+const r4 = s => s.repeat(4);
+// pattern letters: X accent, x normal, o ghost note, - rest (32 sixteenths = 2 bars)
+const VEL = {X:1, x:.68, o:.32};
+const GROOVES = [
+  {name:"Jack", note:"124, light swing", bpm:124, swing:.2, p:{
+    kick:"X---x---x---x---X---x---x---x-o-", clap:"----x-------X-------x-------X---",
+    hat_closed:r4("xo-oxo-o"), hat_open:r4("--X---x-"),
+    rim:"---x--X----x-o-----x--X---x--x-o", snare:"-------------------------------o"}},
+  {name:"Velvet", note:"120, lazy swing", bpm:120, swing:.32, p:{
+    kick:"X---x---x---x---X---x--ox---x---", snap:"----X-------x-------X-------x---",
+    clap:"----o-------x--o----o-------x---", shaker:r4("x-oxX-ox"), hat_open:r4("--o---x-"),
+    conga:"--X--o---x----o---X--o---x--x-o-", bongo:"------o------x-----o--o------X-o",
+    tambourine:"----o-------o-------o-------o---", ride:"x-------o-------x-------o-------"}},
+  {name:"Jungle gym", note:"127, tribal", bpm:127, swing:.15, p:{
+    kick:"X---x---x---x---X---x---x--xx---", clap:"----o-------X-------o-------X---",
+    snare:"-------o-o-------------o-o----o-", tom:"------X--x----x----x--X--x--x-X-",
+    conga:"-x---X-x-x---X-x-x---X-x--x--X-x", clave:"X--x--x---x-x---X--x--x---x-x---",
+    tambourine:r4("--x---X-"), hat_closed:r4("x-oXo-ox"), crash:"X"+"-".repeat(31),
+    ride:"-".repeat(16)+"--o---x---o---x-"}},
+];
+const LEVEL = {kick:.85, clap:.8, snare:.75, snap:.7, rim:.65, hat_closed:.52, hat_open:.48, shaker:.48,
+               tambourine:.48, ride:.42, crash:.48};      // metals sit back by default; everything else .7
+const PACK_A = ["Moist","Haunted","Velvet","Crispy","Lukewarm","Forbidden","Sticky","Cosmic","Polite","Feral","Soggy","Turbo","Damp","Suspicious"];
+const PACK_B = ["Lasers","Basement","Tupperware","Dolphin","Fax Machine","Lasagne","Pigeons","Carpet","Jacuzzi","Modem","Trousers","Yoghurt","Lobby","Gravy"];
+const CHATTER = ["milking the noise cow","asking the drummers nicely","unscrambling 16 eggs","polishing the hi-hats",
+                 "warming the kick oven","negotiating with a cowbell","combing the static","folding tiny snares"];
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const say = t => { $("#msg").textContent = t; };
+
+const BRIGHT = .8;
+// each genre sets every pad's [length, tone] (0..1 within what the teacher made for that drum; null = model decides)
+const FLAVOUR = {
+  "80s":[.8,.85], "90s":[.55,.7], "Chicago house":[.5,.8], "classic Chicago house":[.55,.85], "Detroit techno":[.4,.75],
+  "French house":[.45,.9], "Italo disco":[.85,.9], "New York garage house":[.55,.5], "UK garage":[.25,.85],
+  "acid house":[.3,.9], "afro house":[.6,.5], "deep house":[.75,.25], "disco":[.7,.8], "electro":[.3,.9],
+  "hip-hop":[.65,.2], "house":[.5,.75], "jackin house":[.25,.8], "lo-fi house":[.6,.1], "microhouse":[.08,.7],
+  "minimal techno":[.12,.6], "old-school":[.55,.35], "progressive house":[.85,.75], "soulful house":[.7,.45],
+  "tech house":[.2,.9], "techno":[.35,.55], "tribal house":[.6,.4], "warehouse rave":[.9,.95],
+};
+const flavour = () => FLAVOUR[$("#genre").value] || [null, BRIGHT];
+let meta, flow, dec, nCat, nTags;
+const S = { bpm:124, swing:.2, drive:.25, filter:.5, groove:0, sel:12, playing:false, pack:0 };
+const pads = LAYOUT.map((cat,i) => ({cat, i, noise:null, wave:null, buf:null, knobs:[null,BRIGHT,null], level:LEVEL[cat]||.7, dirty:false}));
+
+/* ---------- models ---------- */
+function gauss(n){ const a=new Float32Array(n); for(let i=0;i<n;i+=2){ const u=1-Math.random(), v=Math.random(), r=Math.sqrt(-2*Math.log(u));
+  a[i]=r*Math.cos(6.2831853*v); if(i+1<n) a[i+1]=r*Math.sin(6.2831853*v);} return a; }
+function knobValue(cat, k, v){ const [lo,mid,hi] = meta.knob_range[cat].map(r=>r[k]); return v<.5 ? lo+(mid-lo)*v*2 : mid+(hi-mid)*(v-.5)*2; }
+function tagIndex(kind, value){ const i = meta.tags.indexOf(kind+":"+value); return i<0 ? nTags : i; }
+
+async function boot(){
+  meta = await (await fetch("models/meta.json")).json();
+  nCat = meta.categories.length; nTags = meta.tags.length;
+  fillPick("genre","any genre","genre:","classic Chicago house"); fillPick("machine","any machine","source:","");
+  ort.env.wasm.wasmPaths = new URL("vendor/", location.href).href;
+  let gpu = false;
+  try { gpu = !!(navigator.gpu && await navigator.gpu.requestAdapter()); } catch(e){}
+  if(!gpu){ ort.env.wasm.numThreads = Math.min(8, navigator.hardwareConcurrency||4); ort.env.wasm.proxy = true; }
+  say("loading 5.3 million drummers…");
+  const eps = gpu ? ["webgpu","wasm"] : ["wasm"];
+  try { flow = await ort.InferenceSession.create("models/flow.onnx", {executionProviders:eps}); }
+  catch(e){ console.warn("first backend failed:", e); flow = await ort.InferenceSession.create("models/flow.onnx", {executionProviders:["wasm"]}); gpu=false; }
+  dec = await ort.InferenceSession.create("models/decoder.onnx", {executionProviders:["wasm"]});
+  S.backend = gpu ? "gpu" : "cpu";
+  $("#regen").disabled = false;
+  newPack();
+}
+
+async function sample(list, onStep){
+  const B=list.length, K=meta.K, D=meta.D, n=K*D, steps=16, cfg = 2.2, two = cfg!==1, BB = two?2*B:B;
+  const x=new Float32Array(B*n); list.forEach((p,b)=>x.set(p.noise,b*n));
+  const cat=new BigInt64Array(BB).fill(BigInt(nCat)), tags=new BigInt64Array(BB*4).fill(BigInt(nTags));
+  const knobs=new Float32Array(BB*3), kmask=new Float32Array(BB*3);
+  const g=tagIndex("genre",$("#genre").value), m=tagIndex("source",$("#machine").value);
+  list.forEach((p,b)=>{ cat[b]=BigInt(meta.categories.indexOf(p.cat)); tags[b*4]=BigInt(g); tags[b*4+1]=BigInt(m);
+    p.knobs.forEach((v,k)=>{ if(v!==null){ knobs[b*3+k]=knobValue(p.cat,k,v); kmask[b*3+k]=1; } }); });
+  const xx=new Float32Array(BB*n), t=new Float32Array(BB);
+  for(let s=0;s<steps;s++){
+    xx.set(x,0); if(two) xx.set(x,B*n); t.fill(s/steps);
+    const out = await flow.run({ x:new ort.Tensor("float32",xx,[BB,K,D]), t:new ort.Tensor("float32",t,[BB]),
+      cat:new ort.Tensor("int64",cat,[BB]), tags:new ort.Tensor("int64",tags,[BB,4]),
+      knobs:new ort.Tensor("float32",knobs,[BB,3]), kmask:new ort.Tensor("float32",kmask,[BB,3]) });
+    const v = out.v.data;
+    for(let i=0;i<B*n;i++){ const c=v[i], u=two?v[B*n+i]:c; x[i] += (u + cfg*(c-u))/steps; }
+    onStep && onStep((s+1)/steps);
+  }
+  for(let i=0;i<x.length;i++) x[i]=Math.max(-1,Math.min(1,x[i]*meta.scale));
+  const w = (await dec.run({ z:new ort.Tensor("float32",x,[B,K,D]) })).wave.data, N=meta.n;
+  list.forEach((p,b)=>{
+    const y=new Float32Array(N); let peak=1e-6;
+    for(let i=0;i<N;i++){ y[i]=w[b*N+i]; if(!isFinite(y[i])) y[i]=0; peak=Math.max(peak,Math.abs(y[i])); }
+    const fade=441; for(let i=0;i<N;i++){ y[i]*=.89/peak; if(i>=N-fade) y[i]*=(N-i)/fade; }
+    p.wave=y; p.buf=new AudioBuffer({length:N,sampleRate:meta.sr}); p.buf.copyToChannel(y,0);
+  });
+}
+
+let working=false, gen=0;
+async function cook(){            // generate every pad marked dirty; calls made while busy are picked up by the loop
+  if(working) return; working=true;
+  try{
+    while(pads.some(p=>p.dirty)){
+      const list=pads.filter(p=>p.dirty); list.forEach(p=>{p.dirty=false; padEl(p).classList.add("cooking");});
+      const line=pick(CHATTER), t0=performance.now();
+      await sample(list, f=>{ gen=f; say(line+"… "+Math.round(f*100)+"%"); });
+      list.forEach(p=>padEl(p).classList.remove("cooking")); gen=0;
+      say(list.length>1 ? list.length+" drums hatched in "+((performance.now()-t0)/1000).toFixed(1)+" s."+(S.playing?"":" Hit Play.")
+                        : (NICE[list[0].cat]||list[0].cat)+" re-hatched.");
+      $("#play").disabled=false; $("#save").disabled=false;
+    }
+  }catch(e){ console.error(e); say("the drummers fell over: "+(e.message||e).slice(0,60)+" (reload the page)"); document.querySelectorAll(".cooking").forEach(e=>e.classList.remove("cooking")); gen=0; }
+  working=false;
+}
+function newPack(){
+  pads.forEach(p=>{ p.noise=gauss(meta.K*meta.D); p.knobs=[...flavour(),null]; p.dirty=true; });
+  S.pack++; $("#packname").textContent = pick(PACK_A)+" "+pick(PACK_B)+" vol."+S.pack;
+  showPadKnobs(); cook();
+}
+function reflavour(genre){      // genre change also resets every pad's length and tone to that genre's lean
+  if(genre===true){ const f=flavour(); pads.forEach(p=>{ p.knobs[0]=f[0]; p.knobs[1]=f[1]; }); showPadKnobs(); }
+  pads.forEach(p=>p.dirty=true); cook(); }
+
+/* ---------- audio ---------- */
+let ctx, master, shaper, lop, hip, openGain=null;
+function audio(){
+  if(ctx) return ctx;
+  ctx=new AudioContext(); master=ctx.createGain(); shaper=ctx.createWaveShaper(); shaper.oversample="2x";
+  const lim=ctx.createDynamicsCompressor(); lim.threshold.value=-6; lim.ratio.value=8; lim.attack.value=.003; lim.release.value=.12;
+  lop=ctx.createBiquadFilter(); lop.type="lowpass"; lop.Q.value=1.2; hip=ctx.createBiquadFilter(); hip.type="highpass"; hip.Q.value=1.2;
+  master.connect(shaper).connect(lop).connect(hip).connect(lim).connect(ctx.destination); setDrive(); setFilter(); return ctx;
+}
+function setFilter(){ if(!lop) return; const v=S.filter, t=ctx.currentTime;      // one DJ-style knob: left closes the top, right removes the bottom
+  lop.frequency.setTargetAtTime(v<.46 ? 180*Math.pow(110,v/.46) : 20000, t, .02);
+  hip.frequency.setTargetAtTime(v>.54 ? 20*Math.pow(200,(v-.54)/.46) : 20, t, .02); }
+function setDrive(){ if(!shaper) return; const k=1+S.drive*7, c=new Float32Array(1025), n=Math.tanh(k);
+  for(let i=0;i<1025;i++) c[i]=Math.tanh(k*(i/512-1))/n; shaper.curve=c; master.gain.value=.7/(1+S.drive*.9); }
+function trigger(p, when, vel){
+  if(!p.buf) return; audio();
+  const src=ctx.createBufferSource(), g=ctx.createGain(); src.buffer=p.buf; g.gain.value=p.level*p.level*1.3*vel;
+  src.connect(g).connect(master); src.start(when);
+  if(p.cat==="hat_closed" && openGain) openGain.gain.setTargetAtTime(0, when, .012);
+  if(p.cat==="hat_open") openGain=g;
+  visuals.push({t:when, pad:p.i});
+}
+// Background tabs slow the page's timers down to about once a second, which used to let the
+// sequencer fall behind and then fire a burst of late notes at once. So: the tick comes from a
+// worker (not slowed as much), the lookahead grows while the tab is hidden, and any step that is
+// already in the past is skipped instead of played late.
+const ticker = new Worker(URL.createObjectURL(new Blob(
+  ["let t=null; onmessage=e=>{ clearInterval(t); if(e.data) t=setInterval(()=>postMessage(0), e.data); };"],
+  {type:"text/javascript"})));
+ticker.onmessage = () => schedule();
+let step=0, nextTime=0; const visuals=[];
+function schedule(){
+  if(!S.playing) return;
+  const d=60/S.bpm/4, g=GROOVES[S.groove].p, now=ctx.currentTime;
+  if(nextTime < now){ const n=Math.ceil((now-nextTime)/d); step=(step+n)%32; nextTime+=n*d; }
+  while(nextTime < now+(document.hidden ? 1.5 : .3)){
+    const when = nextTime + (step%2 ? S.swing*d*.667 : 0);   // 50% = full triplet swing
+    for(const p of pads){ const v=VEL[(g[p.cat]||"")[step]]; if(v) trigger(p,when,v); }
+    visuals.push({t:when, step});
+    nextTime+=d; step=(step+1)%32;
+  }
+}
+function play(on){
+  S.playing=on; $("#play").textContent=on?"Stop":"Play"; $("#play").setAttribute("aria-pressed",on);
+  ticker.postMessage(0);
+  if(on){ audio().resume(); step=0; nextTime=ctx.currentTime+.06; schedule(); ticker.postMessage(25); }
+  else document.querySelectorAll(".steps i.on").forEach(e=>e.classList.remove("on"));
+}
+
+/* ---------- interface ---------- */
+const padEl = p => $("#pads").children[p.i];
+function fillPick(id, any, prefix, start){
+  const s=$("#"+id); s.innerHTML=`<option value="">${any}</option>`+meta.tags.filter(t=>t.startsWith(prefix))
+    .map(t=>t.slice(prefix.length)).map(v=>`<option${v===start?" selected":""}>${v}</option>`).join("");
+  s.onchange=()=>reflavour(id==="genre");
+}
+document.querySelectorAll("[data-step]").forEach(b=>b.onclick=()=>{ const [id,d]=b.dataset.step.split(":"), s=$("#"+id);
+  s.selectedIndex=(s.selectedIndex+ +d+s.options.length)%s.options.length; reflavour(id==="genre"); });
+
+pads.forEach(p=>{
+  const b=document.createElement("button"); b.className="pad"; b.style.setProperty("--led",LEDS[p.i]);
+  b.innerHTML=`${NICE[p.cat]||p.cat}<span class="led"></span><span class="key">${KEYS[p.i]}</span>`;
+  b.setAttribute("aria-label",`${NICE[p.cat]||p.cat} pad, key ${KEYS[p.i]}`);
+  b.onpointerdown=()=>hitPad(p); b.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); hitPad(p);} };
+  $("#pads").append(b);
+});
+for(let i=0;i<16;i++) $("#steps").append(document.createElement("i"));
+function hitPad(p){ select(p.i); if(p.buf){ audio().resume(); trigger(p, ctx.currentTime, 1); } }
+function select(i){ S.sel=i; document.querySelectorAll(".pad").forEach((e,j)=>e.classList.toggle("sel",j===i)); showPadKnobs(); }
+addEventListener("keydown",e=>{ if(e.target.matches("select,.knob")||e.metaKey||e.ctrlKey||e.repeat) return;
+  const i=KEYS.indexOf(e.key.toLowerCase()); if(i>=0) hitPad(pads[i]);
+  if(e.key===" " && !e.target.matches("button")){ e.preventDefault(); if(!$("#play").disabled) play(!S.playing); } });
+
+GROOVES.forEach((g,i)=>{ const b=document.createElement("button"); b.className="btn"; b.innerHTML=`${g.name}<small>${g.note}</small>`;
+  b.setAttribute("aria-pressed",i===0);
+  b.onclick=()=>{ S.groove=i; S.bpm=g.bpm; S.swing=g.swing; knobAPI.tempo.set((g.bpm-105)/35); knobAPI.swing.set(g.swing/.5);
+    document.querySelectorAll("#grooves .btn").forEach((e,j)=>e.setAttribute("aria-pressed",j===i)); say("groove: "+g.name+" ("+g.note+")"); };
+  $("#grooves").append(b); });
+
+function knob(host, o){   // o: label, value (0..1 or null = auto), color, show(v), input(v), change(v), reset
+  const k=document.createElement("div"); k.className="k";
+  k.innerHTML=`<div class="knob" tabindex="0" role="slider" aria-label="${o.label}" aria-valuemin="0" aria-valuemax="100"><i></i></div><span>${o.label}</span><output></output>`;
+  const el=k.firstChild, out=k.lastChild; let v=o.value; if(o.color) el.style.setProperty("--c",o.color);
+  const paint=()=>{ el.classList.toggle("auto",v===null); el.style.setProperty("--v",v===null?.5:v);
+    el.setAttribute("aria-valuenow",Math.round((v===null?.5:v)*100)); out.textContent=v===null?"auto":o.show(v); el.setAttribute("aria-valuetext",out.textContent); };
+  const put=(nv,done)=>{ v=nv===null?null:Math.max(0,Math.min(1,nv)); paint(); o.input&&o.input(v); done&&o.change&&o.change(v); };
+  let y0,v0;
+  el.onpointerdown=e=>{ el.setPointerCapture(e.pointerId); y0=e.clientY; v0=v===null?.5:v; };
+  el.onpointermove=e=>{ if(y0===undefined||!el.hasPointerCapture(e.pointerId)) return; const nv=v0+(y0-e.clientY)/150; if(Math.abs(y0-e.clientY)>2) put(nv,false); };
+  el.onpointerup=e=>{ if(y0!==undefined){ y0=undefined; o.change&&o.change(v); } };
+  el.ondblclick=()=>put(o.reset===undefined?null:o.reset,true);
+  el.onkeydown=e=>{ const d={ArrowUp:.04,ArrowRight:.04,ArrowDown:-.04,ArrowLeft:-.04}[e.key];
+    if(d){ e.preventDefault(); put((v===null?.5:v)+d,true); } if(e.key==="Backspace"||e.key==="Delete") put(o.reset===undefined?null:o.reset,true); };
+  el.onwheel=e=>{ e.preventDefault(); put((v===null?.5:v)-Math.sign(e.deltaY)*.03,true); };
+  paint(); host.append(k); return {set:nv=>{ v=nv; paint(); }};
+}
+const knobAPI={};
+knobAPI.tempo=knob($("#mainknobs"),{label:"tempo",value:(124-105)/35,reset:(124-105)/35,color:"var(--aqua)",show:v=>Math.round(105+v*35)+" bpm",input:v=>S.bpm=Math.round(105+v*35)});
+knobAPI.swing=knob($("#mainknobs"),{label:"swing",value:.4,reset:.4,color:"var(--aqua)",show:v=>Math.round(v*50)+"%",input:v=>S.swing=v*.5});
+knob($("#mainknobs"),{label:"crunch",value:S.drive,reset:.25,color:"var(--pink)",show:v=>Math.round(v*10)+"/10",input:v=>{S.drive=v; setDrive();}});
+knob($("#mainknobs"),{label:"filter",value:.5,reset:.5,color:"var(--pink)",show:v=>v<.46?"low-pass":v>.54?"high-pass":"open",
+  input:v=>{S.filter=v; setFilter();}});
+function showPadKnobs(){
+  const p=pads[S.sel], h=$("#padknobs"); h.innerHTML=""; $("#padtag").textContent="selected pad: "+(NICE[p.cat]||p.cat);
+  $("#padname").textContent=(NICE[p.cat]||p.cat);
+  const tweak=k=>({value:p.knobs[k], input:v=>p.knobs[k]=v, change:()=>{ p.dirty=true; cook(); }});
+  knob(h,{label:"length",...tweak(0),show:v=>v<.33?"short":v<.66?"medium":"long"});
+  knob(h,{label:"tone",...tweak(1),show:v=>v<.33?"dark":v<.66?"even":"bright"});
+  knob(h,{label:"pitch",...tweak(2),show:v=>v<.33?"low":v<.66?"mid":"high"});
+  knob(h,{label:"level",value:p.level,reset:LEVEL[p.cat]||.7,color:"var(--lime)",show:v=>Math.round(v*10)+"/10",input:v=>p.level=v});
+}
+$("#play").onclick=()=>play(!S.playing);
+$("#regen").onclick=newPack;
+
+/* ---------- display ---------- */
+const scr=$("#scr"), c2=scr.getContext("2d"), INK="#20300c", DIM="#9bb83a"; let bop=0, look=0, mouth=0;
+function draw(now){
+  const t=ctx?ctx.currentTime:0;
+  while(visuals.length && visuals[0].t<=t){ const v=visuals.shift();
+    if(t-v.t > .15) continue;            // played while the tab was hidden: don't flash it now
+    if(v.step!==undefined){ [...$("#steps").children].forEach((e,i)=>e.classList.toggle("on",S.playing&&i===v.step%16)); }
+    else{ const p=pads[v.pad], el=padEl(p); el.classList.add("hit"); setTimeout(()=>el.classList.remove("hit"),90);
+      mouth=1; look=(v.pad%4-1.5)/1.5; if(p.cat==="kick") bop=1; } }
+  c2.clearRect(0,0,168,52); c2.fillStyle=INK;
+  // the creature
+  const sq=Math.round(bop*4), by=14+sq, cx=24, w=17+Math.round(bop*2), h=13-sq;
+  for(let y=-h;y<=h;y++){ const r=Math.round(w*Math.sqrt(1-(y*y)/(h*h+.01))); c2.fillRect(cx-r,by+13+y,r*2,1); }
+  c2.fillRect(cx-9,by-3-Math.round(bop*3),2,6); c2.fillRect(cx+7,by-4-Math.round(bop*3),2,7);          // antennae
+  c2.fillRect(cx-11,by-5-Math.round(bop*3),4,3); c2.fillRect(cx+6,by-7-Math.round(bop*3),4,3);
+  c2.fillStyle="#c3e04b"; const blink=(now%3700)<120, ex=Math.round(look*2);
+  c2.fillRect(cx-9,by+7,7,blink?1:7); c2.fillRect(cx+3,by+7,7,blink?1:7);
+  c2.fillRect(cx-6,by+19,13,1+Math.round(mouth*4)+(gen?Math.round(now/90)%3:0));
+  c2.fillStyle=INK; if(!blink){ c2.fillRect(cx-7+ex,by+9,3,3); c2.fillRect(cx+5+ex,by+9,3,3); }
+  c2.fillRect(cx-13,by+25+h-12,5,2); c2.fillRect(cx+9,by+25+h-12,5,2);                                    // feet
+  bop*=.86; mouth*=.8;
+  // waveform of the selected pad, or static while cooking
+  const x0=52, W=114, mid=26, p=pads[S.sel];
+  c2.fillStyle=DIM; c2.fillRect(x0,mid,W,1); c2.fillStyle=INK;
+  for(let x=0;x<W;x+=2){
+    let a=0;
+    if(p.wave){ const n=Math.floor(p.wave.length*.6/W*2), s=Math.floor(x/W*p.wave.length*.6); for(let i=0;i<n;i+=8) a=Math.max(a,Math.abs(p.wave[s+i])); }
+    if(gen && (p.dirty||padEl(p).classList.contains("cooking"))) a=a*gen+(1-gen)*Math.random()*.8;
+    const hgt=Math.max(1,Math.round(a*24)); c2.fillRect(x0+x,mid-hgt,1,hgt*2);
+  }
+  if(gen){ c2.fillRect(x0,49,Math.round(W*gen),2); }
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+/* ---------- save the pack ---------- */
+function wav(y){ const b=new DataView(new ArrayBuffer(44+y.length*2)), s=(o,t)=>[...t].forEach((ch,i)=>b.setUint8(o+i,ch.charCodeAt(0)));
+  s(0,"RIFF"); b.setUint32(4,36+y.length*2,true); s(8,"WAVEfmt "); b.setUint32(16,16,true); b.setUint16(20,1,true); b.setUint16(22,1,true);
+  b.setUint32(24,44100,true); b.setUint32(28,88200,true); b.setUint16(32,2,true); b.setUint16(34,16,true); s(36,"data"); b.setUint32(40,y.length*2,true);
+  y.forEach((v,i)=>b.setInt16(44+i*2,Math.max(-1,Math.min(1,v))*32767,true)); return new Uint8Array(b.buffer); }
+const CRC=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c; }
+  return d=>{ let c=-1; for(const x of d) c=t[(c^x)&255]^(c>>>8); return (c^-1)>>>0; }; })();
+function zip(files){ const parts=[], dir=[]; let off=0; const enc=new TextEncoder();
+  for(const f of files){ const name=enc.encode(f.name), crc=CRC(f.data), h=new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint32(14,crc,true); h.setUint32(18,f.data.length,true); h.setUint32(22,f.data.length,true); h.setUint16(26,name.length,true);
+    const d=new DataView(new ArrayBuffer(46)); d.setUint32(0,0x02014b50,true); d.setUint16(4,20,true); d.setUint16(6,20,true); d.setUint32(16,crc,true);
+    d.setUint32(20,f.data.length,true); d.setUint32(24,f.data.length,true); d.setUint16(28,name.length,true); d.setUint32(42,off,true);
+    parts.push(new Uint8Array(h.buffer),name,f.data); dir.push(new Uint8Array(d.buffer),name); off+=30+name.length+f.data.length; }
+  const size=dir.reduce((a,b)=>a+b.length,0), e=new DataView(new ArrayBuffer(22)); e.setUint32(0,0x06054b50,true); e.setUint16(8,files.length,true);
+  e.setUint16(10,files.length,true); e.setUint32(12,size,true); e.setUint32(16,off,true);
+  return new Blob([...parts,...dir,new Uint8Array(e.buffer)],{type:"application/zip"}); }
+$("#save").onclick=()=>{ const name=$("#packname").textContent.replace(/[^a-z0-9]+/gi,"_");
+  const files=pads.filter(p=>p.wave).map((p,i)=>({name:`${name}/${String(i+1).padStart(2,"0")}_${p.cat}.wav`,data:wav(p.wave)}));
+  const a=document.createElement("a"); a.href=URL.createObjectURL(zip(files)); a.download=name+".zip"; a.click(); say("pack saved: "+files.length+" wavs"); };
+
+select(12);
+boot().catch(e=>{ console.error(e); say("could not load the models: "+(e.message||e).slice(0,70)); });
+</script>
+</body>
+</html>

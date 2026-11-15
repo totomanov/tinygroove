@@ -1,0 +1,9 @@
+// The site is a Cloudflare Worker that only serves static files: everything in demo/.
+// Deployed by .github/workflows/deploy.yml on every push to main, or by hand:
+//   npx wrangler deploy
+{
+  "name": "tinygroove",
+  "compatibility_date": "2026-11-01",
+  "assets": { "directory": "./demo" },
+  "routes": [{ "pattern": "tinygroove.com", "custom_domain": true }]
+}

@@ -1,0 +1,10 @@
+# Same headers as serve.py: browsers only allow multi-threaded WebAssembly (the CPU fallback) with these.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
+
+# The runtime and models are large and change rarely; let browsers keep them for a day.
+/vendor/*
+  Cache-Control: public, max-age=86400
+/models/*
+  Cache-Control: public, max-age=86400
