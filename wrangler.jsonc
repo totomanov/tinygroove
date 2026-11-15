@@ -1,5 +1,5 @@
 // The site is a Cloudflare Worker that only serves static files: everything in demo/.
-// Deployed by .github/workflows/deploy.yml on every push to main, or by hand:
+// Deploy by hand from the repository root:
 //   npx wrangler deploy
 {
   "name": "tinygroove",

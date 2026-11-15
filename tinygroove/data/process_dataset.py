@@ -1,6 +1,6 @@
 """Milestone 2: turn raw teacher renders into clean training clips.
 
-    stable-audio-3/optimized/mlx/.venv/bin/python process_dataset.py renders/dataset_v1
+    uv run --with numpy python -m tinygroove.data.process_dataset renders/dataset_v4
 
 Reads  <dir>/meta.jsonl and the raw wavs (left untouched).
 Writes <dir>/clean/<category>/<id>.wav   mono, 44.1 kHz, 16-bit, exactly 1 s

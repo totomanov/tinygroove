@@ -58,6 +58,7 @@ button,select{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--aqua); outline-offset:2px}
 
 .unit{
+  -webkit-user-select:none; user-select:none;      /* dragging a knob should never select the labels */
   width:100%; position:relative; z-index:1; padding:22px 24px 26px;
   border-radius:38px 38px 54px 54px / 34px 34px 44px 44px;
   background:linear-gradient(168deg,var(--shell-hi) 0,var(--shell) 28%,var(--shell-lo) 100%);
@@ -364,9 +365,11 @@ const FLAVOUR = {
   "tech house":[.2,.9], "techno":[.35,.55], "tribal house":[.6,.4], "warehouse rave":[.9,.95],
 };
 const flavour = () => FLAVOUR[$("#genre").value] || [null, BRIGHT];
+const EVEN = .5;      // kicks keep an even tone whatever the genre; brighter kicks get thin
+const toneFor = (cat, f) => cat === "kick" ? EVEN : f[1];
 let meta, flow, dec, nCat, nTags;
 const S = { bpm:124, swing:.2, drive:.25, filter:.5, groove:0, sel:12, playing:false, pack:0 };
-const pads = LAYOUT.map((cat,i) => ({cat, i, noise:null, wave:null, buf:null, knobs:[null,BRIGHT,null], level:LEVEL[cat]||.7, dirty:false}));
+const pads = LAYOUT.map((cat,i) => ({cat, i, noise:null, wave:null, buf:null, knobs:[null,toneFor(cat,[null,BRIGHT]),null], level:LEVEL[cat]||.7, dirty:false}));
 
 /* ---------- models ---------- */
 function gauss(n){ const a=new Float32Array(n); for(let i=0;i<n;i+=2){ const u=1-Math.random(), v=Math.random(), r=Math.sqrt(-2*Math.log(u));
@@ -437,12 +440,12 @@ async function cook(){            // generate every pad marked dirty; calls made
   working=false;
 }
 function newPack(){
-  pads.forEach(p=>{ p.noise=gauss(meta.K*meta.D); p.knobs=[...flavour(),null]; p.dirty=true; });
+  pads.forEach(p=>{ p.noise=gauss(meta.K*meta.D); const f=flavour(); p.knobs=[f[0],toneFor(p.cat,f),null]; p.dirty=true; });
   S.pack++; $("#packname").textContent = pick(PACK_A)+" "+pick(PACK_B)+" vol."+S.pack;
   showPadKnobs(); cook();
 }
 function reflavour(genre){      // genre change also resets every pad's length and tone to that genre's lean
-  if(genre===true){ const f=flavour(); pads.forEach(p=>{ p.knobs[0]=f[0]; p.knobs[1]=f[1]; }); showPadKnobs(); }
+  if(genre===true){ const f=flavour(); pads.forEach(p=>{ p.knobs[0]=f[0]; p.knobs[1]=toneFor(p.cat,f); }); showPadKnobs(); }
   pads.forEach(p=>p.dirty=true); cook(); }
 
 /* ---------- audio ---------- */

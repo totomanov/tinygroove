@@ -11,7 +11,7 @@ Every condition can be left out: training drops them at random, which also gives
 import math
 import torch
 import torch.nn as nn
-from ae_model import D, K
+from tinygroove.model.ae_model import D, K
 
 KNOBS = ("decay", "brightness", "pitch")
 

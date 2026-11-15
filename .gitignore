@@ -3,13 +3,12 @@ stable-audio-3/
 
 # generated audio and training outputs
 renders/
-ae_v*/*
-flow_v*/*
+runs/*/*
 *.log
 
-# ...except the two checkpoints export_onnx.py needs
-!ae_v2/ae.pt
-!flow_v1/flow.pt
+# ...except the two checkpoints the browser export needs
+!runs/ae_v2/ae.pt
+!runs/flow_v1/flow.pt
 
 __pycache__/
 .venv/

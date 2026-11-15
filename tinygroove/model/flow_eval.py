@@ -5,10 +5,10 @@ as varied as the teacher's sounds, is it a copy of a training sound, and do the 
 """
 import numpy as np
 import torch
-from ae_train import brightness
-from flow_model import KNOBS
-from flow_train import pitch
-from process_dataset import process
+from tinygroove.model.ae_train import brightness
+from tinygroove.model.flow_model import KNOBS
+from tinygroove.model.flow_train import pitch
+from tinygroove.data.process_dataset import process
 
 SWEEP_CATS = ("kick", "clap", "snare", "hat_closed", "hat_open", "tom")
 TAG_CATS = ("kick", "clap", "snare", "hat_closed")

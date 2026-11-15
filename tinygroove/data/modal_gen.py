@@ -5,9 +5,9 @@ One-time setup (yours to do, in your own terminal):
     modal secret create huggingface HF_TOKEN=hf_...   # read token of the account with SA3 access
 
 Run:
-    modal run modal_gen.py --n 600  --out renders/modal_test          # smoke test
-    modal run modal_gen.py --n 10000 --out renders/dataset_v4         # first pass
-    modal run modal_gen.py --n 50000 --out renders/dataset_v4         # extends it; done chunks are skipped
+    modal run -m tinygroove.data.modal_gen --n 600  --out renders/modal_test          # smoke test
+    modal run -m tinygroove.data.modal_gen --n 10000 --out renders/dataset_v4         # first pass
+    modal run -m tinygroove.data.modal_gen --n 50000 --out renders/dataset_v4         # extends it; done chunks are skipped
 
 The plan (prompts, seeds, matched sets) comes from gen_batch.plan(), the same as the Mac path.
 Clips are rendered in batches on the GPU, stored per chunk on a Modal volume, then pulled back
@@ -27,6 +27,7 @@ image = (
     .pip_install("torch==2.7.1", "torchaudio==2.7.1", index_url="https://download.pytorch.org/whl/cu126")
     .pip_install("git+https://github.com/Stability-AI/stable-audio-3.git")
     .env({"HF_HOME": "/cache/hf"})
+    .add_local_python_source("tinygroove")
 )
 cache = modal.Volume.from_name("tinygroove-cache", create_if_missing=True)
 data = modal.Volume.from_name("tinygroove-data", create_if_missing=True)
@@ -93,7 +94,7 @@ def main(n: int = 600, out: str = "renders/modal_test", steps: int = 8, padding:
     import io, json, time, wave
     from pathlib import Path
     import numpy as np
-    from gen_batch import plan
+    from tinygroove.data.gen_batch import plan
 
     out_dir = Path(out).resolve()
     run = out_dir.name

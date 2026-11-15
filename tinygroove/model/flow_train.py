@@ -7,8 +7,8 @@ as a guard against memorising the 48k training sounds.
 import copy, json, math, time
 import torch
 import torch.nn.functional as F
-from ae_model import N, SR
-from flow_model import Flow
+from tinygroove.model.ae_model import N, SR
+from tinygroove.model.flow_model import Flow
 
 
 def pitch(audio, device, bs=1024):

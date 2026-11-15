@@ -1,6 +1,6 @@
 """Export the trained student for the browser demo.
 
-    uv run --with torch --with numpy --with onnx --with onnxruntime python export_onnx.py
+    uv run --with torch --with numpy --with onnx --with onnxruntime python -m tinygroove.model.export_onnx
 
 Writes demo/models/flow.onnx (one denoising step; the page runs the loop), demo/models/decoder.onnx
 (latent -> waveform) and demo/models/meta.json (categories, tags, latent scale, knob ranges).
@@ -16,10 +16,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ae_model import AE, HOP, N, NFFT, K, D
-from flow_model import Flow
+from tinygroove.model.ae_model import AE, HOP, N, NFFT, K, D
+from tinygroove.model.flow_model import Flow
 
-OUT = Path(__file__).resolve().parent / "demo" / "models"
+ROOT = Path(__file__).resolve().parents[2]
+OUT = ROOT / "demo" / "models"
+RUNS = ROOT / "runs"
 
 
 def attention(m, h):
@@ -86,12 +88,12 @@ class Decode(nn.Module):
 
 def main():
     import onnxruntime as ort
-    c = torch.load("flow_v1/flow.pt", map_location="cpu")
+    c = torch.load(RUNS / "flow_v1" / "flow.pt", map_location="cpu")
     names, vocab = c["categories"], c["tags"]
     flow = Flow(len(names), len(vocab)).eval()
     flow.load_state_dict(c["state"])
     ae = AE(len(names), 2).eval()
-    ae.load_state_dict(torch.load(f"{c['ae']}/ae.pt", map_location="cpu")["state"])
+    ae.load_state_dict(torch.load(RUNS / c["ae"] / "ae.pt", map_location="cpu")["state"])
     OUT.mkdir(parents=True, exist_ok=True)
 
     B = 3

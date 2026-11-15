@@ -3,7 +3,7 @@
 Loads the text encoder, DiT and decoder once and loops over a prompt grid, instead of
 reloading everything per clip like ./sa3 does.
 
-    stable-audio-3/optimized/mlx/.venv/bin/python gen_batch.py --n 500 --out renders/dataset_v0
+    stable-audio-3/optimized/mlx/.venv/bin/python -m tinygroove.data.gen_batch --n 500 --out renders/dataset_v0
     ... --only kick,clap      # subset of categories
     ... --n 50000             # extends the same plan: clips already rendered are kept and skipped
     ... --list                # print the planned prompts, render nothing
@@ -16,7 +16,8 @@ import argparse, json, math, os, random, sys, time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SA3 = HERE / "stable-audio-3" / "optimized" / "mlx"
+ROOT = Path(__file__).resolve().parents[2]          # repository root
+SA3 = ROOT / "stable-audio-3" / "optimized" / "mlx"
 
 # category: (seconds, weight, [phrasings]). Weight = share of the dataset; core house sounds get more.
 # Every clip is 1 s. A phrasing can be (text, seconds) to override that; unused for now.
@@ -59,7 +60,7 @@ P_MATCHED = 0.03      # chance a slot starts a matched set (-> about 15% of clip
 def load_vocab(cat):
     """{axis: [(text, weight)]} of proven entries for one category. Weight = measured strength."""
     import csv
-    from vocab import entries
+    from tinygroove.data.vocab import entries
     applies = {text: cats for _, text, cats in entries()}
     core = cat in ("kick", "clap", "snare", "hat_closed", "hat_open")
     out = {}
@@ -141,7 +142,7 @@ def plan(n, only, grid_seed):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=500)
-    ap.add_argument("--out", default=str(HERE / "renders" / "dataset_v3"))
+    ap.add_argument("--out", default=str(ROOT / "renders" / "dataset_v3"))
     ap.add_argument("--only", default="")
     ap.add_argument("--dit", default="sm-sfx", choices=["sm-sfx", "medium"])
     ap.add_argument("--steps", type=int, default=8)

@@ -8,7 +8,7 @@ import copy, json, math, time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ae_model import AE, N, SR, stft
+from tinygroove.model.ae_model import AE, N, SR, stft
 
 FFTS = (2048, 1024, 512, 256, 128, 64)
 

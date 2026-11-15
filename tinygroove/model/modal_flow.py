@@ -1,10 +1,10 @@
 """Train the flow model on Modal, on the latents of a trained autoencoder.
 
-    modal run modal_flow.py                                   # 100,000 steps (stops at 40 min if slower)
-    modal run modal_flow.py --name flow_v1 --fetch-only       # pull an earlier run's results again
+    modal run -m tinygroove.model.modal_flow                                   # 100,000 steps (stops at 40 min if slower)
+    modal run -m tinygroove.model.modal_flow --name flow_v1 --fetch-only       # pull an earlier run's results again
 
 Everything it needs is already on the Modal volume: <ae>/latents.npz and <ae>/ae.pt from modal_ae.py,
-and ae_data/ (clean clips and metadata). Results land in ./<name>/: flow.pt (best EMA weights plus
+and ae_data/ (clean clips and metadata). Results land in runs/<name>/: flow.pt (best EMA weights plus
 tag list, categories, latent scale and knob statistics), log.json and samples/ for listening.
 """
 import modal
@@ -14,7 +14,7 @@ image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install("torch==2.7.1", index_url="https://download.pytorch.org/whl/cu126")
     .pip_install("numpy")
-    .add_local_python_source("ae_model", "ae_train", "process_dataset", "flow_model", "flow_train", "flow_eval")
+    .add_local_python_source("tinygroove")
 )
 data = modal.Volume.from_name("tinygroove-data")
 PREP = "/data/ae_data"
@@ -25,10 +25,10 @@ def train(name: str, ae_name: str, steps: int, max_min: float):
     import json, os
     import numpy as np
     import torch
-    from ae_model import AE
-    from ae_train import brightness
-    from flow_eval import evaluate
-    from flow_train import pitch, train as run
+    from tinygroove.model.ae_model import AE
+    from tinygroove.model.ae_train import brightness
+    from tinygroove.model.flow_eval import evaluate
+    from tinygroove.model.flow_train import pitch, train as run
     dev = "cuda"
     torch.set_float32_matmul_precision("high")
     meta = json.load(open(f"{PREP}/meta.json"))
@@ -83,7 +83,7 @@ def main(name: str = "flow_v1", ae: str = "ae_v2", steps: int = 100000, max_min:
     import numpy as np
     if not fetch_only:
         print("train result:", json.dumps(train.remote(name, ae, steps, max_min), indent=1))
-    out = Path(name)
+    out = Path(__file__).resolve().parents[2] / "runs" / name
     out.mkdir(exist_ok=True)
     for f in ["flow.pt", "log.json", "samples.npz"]:
         (out / f).write_bytes(b"".join(data.read_file(f"{name}/{f}")))

@@ -50,30 +50,44 @@ Each step is one script. You need [uv](https://docs.astral.sh/uv/), a [Modal](ht
 account for the GPU steps, and a Hugging Face token with access to Stable Audio 3 stored as a
 Modal secret named `huggingface`.
 
+Run everything from the repository root; the code is one Python package, `tinygroove`.
+
 | Step | Command | What you get |
 |---|---|---|
-| 1. Render the teacher's drums | `modal run modal_gen.py --n 50000 --out renders/dataset_v4` | 50,004 raw clips (about 55 GPU-minutes) |
-| 2. Gate and clean | `uv run --with numpy python process_dataset.py renders/dataset_v4` | 48,741 clean one-second clips |
-| 3. Train the autoencoder | `modal run modal_ae.py --steps 80000 --max-min 85` | `ae_v2/` |
-| 4. Train the generator | `modal run modal_flow.py` | `flow_v1/` |
-| 5. Export for the browser | `uv run --with torch --with numpy --with onnx --with onnxruntime python export_onnx.py` | `demo/models/` |
+| 1. Render the teacher's drums | `modal run -m tinygroove.data.modal_gen --n 50000 --out renders/dataset_v4` | 50,004 raw clips (about 55 GPU-minutes) |
+| 2. Gate and clean | `uv run --with numpy python -m tinygroove.data.process_dataset renders/dataset_v4` | 48,741 clean one-second clips |
+| 3. Train the autoencoder | `modal run -m tinygroove.model.modal_ae --steps 80000 --max-min 85` | `runs/ae_v2/` |
+| 4. Train the generator | `modal run -m tinygroove.model.modal_flow` | `runs/flow_v1/` |
+| 5. Export for the browser | `uv run --with torch --with numpy --with onnx --with onnxruntime python -m tinygroove.model.export_onnx` | `demo/models/` |
 
-The two trained checkpoints (`ae_v2/ae.pt`, `flow_v1/flow.pt`) are in the repository, so step 5
-works without the first four.
+The two trained checkpoints (`runs/ae_v2/ae.pt`, `runs/flow_v1/flow.pt`) are in the repository,
+so step 5 works without the first four.
+
+To publish the demo to tinygroove.com (needs `npx wrangler login` once):
+
+```bash
+npx wrangler deploy
+```
 
 ## What is where
 
-| | |
-|---|---|
-| `demo/` | the sampler: one HTML file, the exported models, ONNX Runtime Web |
-| `wrangler.jsonc`, `.github/workflows/deploy.yml` | deploys `demo/` to tinygroove.com on every push to `main` |
-| `gen_batch.py`, `modal_gen.py` | prompt planner and dataset renderer (Mac and Modal) |
-| `vocab.py`, `vocab_screen.py`, `vocab_catalogue.csv` | the prompt vocabulary and what each word measurably does |
-| `process_dataset.py` | the gate: drops clipped, silent and double-hit clips, trims and normalises |
-| `ae_model.py`, `ae_train.py`, `modal_ae.py` | the drum autoencoder |
-| `flow_model.py`, `flow_train.py`, `flow_eval.py`, `modal_flow.py` | the generator and its checks |
-| `export_onnx.py` | PyTorch to ONNX, verified against PyTorch |
-| `extras/` | early helpers: test renders on a Mac, a loop sequencer |
+```
+demo/                  the sampler: one HTML file, the exported models, ONNX Runtime Web
+tinygroove/
+  data/                the teacher side
+    vocab.py             prompt vocabulary, with vocab_catalogue.csv: what each word measurably does
+    vocab_screen.py      the experiment that produced the catalogue
+    gen_batch.py         prompt planner, and the renderer for a Mac (MLX)
+    modal_gen.py         the same renderer on Modal GPUs
+    process_dataset.py   the gate: drops clipped, silent and double-hit clips, trims, normalises
+  model/               the student side
+    ae_model.py          the drum autoencoder (ae_train.py trains it, modal_ae.py runs that on Modal)
+    flow_model.py        the generator (flow_train.py, flow_eval.py, modal_flow.py likewise)
+    export_onnx.py       PyTorch to ONNX for the browser, checked against PyTorch
+runs/                  training outputs; only the two checkpoints above are kept in git
+extras/                early helpers: test renders on a Mac, a loop sequencer
+wrangler.jsonc         Cloudflare config for tinygroove.com
+```
 
 ## Known faults
 

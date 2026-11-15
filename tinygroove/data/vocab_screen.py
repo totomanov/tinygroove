@@ -1,10 +1,10 @@
 """Measure what every vocabulary entry does to the sound.
 
     PY=stable-audio-3/optimized/mlx/.venv/bin/python
-    $PY vocab_screen.py jobs      # write the job list
-    $PY gen_batch.py --jobs renders/vocab_screen/jobs.jsonl --out renders/vocab_screen
-    $PY process_dataset.py renders/vocab_screen
-    $PY vocab_screen.py report    # -> vocab_catalogue.csv
+    $PY -m tinygroove.data.vocab_screen jobs      # write the job list
+    $PY -m tinygroove.data.gen_batch --jobs renders/vocab_screen/jobs.jsonl --out renders/vocab_screen
+    $PY -m tinygroove.data.process_dataset renders/vocab_screen
+    $PY -m tinygroove.data.vocab_screen report    # -> vocab_catalogue.csv
 
 Design: for each category and each of SEEDS seeds, render a neutral base prompt ("kick drum")
 and the same prompt with exactly one entry added, at the same seed. Everything a clip differs
@@ -15,10 +15,11 @@ import csv, json, sys
 from collections import defaultdict
 from pathlib import Path
 import numpy as np
-from vocab import BASE, PRE, entries
+from tinygroove.data.vocab import BASE, PRE, entries
 
 HERE = Path(__file__).resolve().parent
-OUT = HERE / "renders" / "vocab_screen"
+ROOT = Path(__file__).resolve().parents[2]          # repository root
+OUT = ROOT / "renders" / "vocab_screen"
 SEEDS = [5000, 5001, 5002, 5003]
 SR = 44100
 PREFIX, SUFFIX = "TrackType: SFX,", "one shot, single hit, no loop, dry, no reverb, isolated"
@@ -48,7 +49,7 @@ def jobs():
 
 
 def feats(path):
-    from process_dataset import read
+    from tinygroove.data.process_dataset import read
     m = read(path)[:, 0]
     seg = m[: SR // 2]
     S = np.abs(np.array([np.fft.rfft(seg[i:i + 1024] * np.hanning(1024)) for i in range(0, len(seg) - 1024, 512)])) ** 2

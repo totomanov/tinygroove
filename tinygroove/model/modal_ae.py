@@ -1,12 +1,12 @@
 """Train the drum autoencoder on Modal.
 
-    modal run modal_ae.py                                  # 40,000 steps (stops at 50 min if slower)
-    modal run modal_ae.py --steps 80000 --max-min 100      # longer run; no other limit applies
-    modal run modal_ae.py --name ae_v1 --fetch-only        # pull an earlier run's results again
+    modal run -m tinygroove.model.modal_ae                                  # 40,000 steps (stops at 50 min if slower)
+    modal run -m tinygroove.model.modal_ae --steps 80000 --max-min 100      # longer run; no other limit applies
+    modal run -m tinygroove.model.modal_ae --name ae_v1 --fetch-only        # pull an earlier run's results again
 
 Data: the raw 50k render is already on the Modal volume (tinygroove-data/dataset_v4). `prep`
-applies the same gate and cleaning as process_dataset.py there, so nothing is uploaded.
-Results land in ./<name>/ (default ae_v2; ae_v1 is the first baseline run): ae.pt (EMA weights), log.json, latents.npz (every clip encoded) and
+applies the same gate and cleaning as tinygroove/data/process_dataset.py there, so nothing is uploaded.
+Results land in runs/<name>/ (default ae_v2; ae_v1 is the first baseline run): ae.pt (EMA weights), log.json, latents.npz (every clip encoded) and
 recon/<category>/ with original, reconstruction and a second decode of the same latent.
 """
 import modal
@@ -16,7 +16,7 @@ image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install("torch==2.7.1", index_url="https://download.pytorch.org/whl/cu126")
     .pip_install("numpy")
-    .add_local_python_source("ae_model", "ae_train", "process_dataset")
+    .add_local_python_source("tinygroove")
 )
 data = modal.Volume.from_name("tinygroove-data")
 SRC = "/data/dataset_v4"
@@ -26,7 +26,7 @@ PREP = "/data/ae_data"
 def _prep_chunk(path):
     import json
     import numpy as np
-    from process_dataset import process
+    from tinygroove.data.process_dataset import process
     z = np.load(path)
     audio, meta = [], []
     for a, j in zip(z["audio"], json.loads(str(z["meta"]))):
@@ -60,7 +60,7 @@ def train(name: str, steps: int, max_min: float):
     import io, json, os
     import numpy as np
     import torch
-    from ae_train import encode_all, train as run
+    from tinygroove.model.ae_train import encode_all, train as run
     dev = "cuda"
     torch.backends.cudnn.benchmark = True
     meta = json.load(open(f"{PREP}/meta.json"))
@@ -110,7 +110,7 @@ def main(name: str = "ae_v2", steps: int = 40000, max_min: float = 50.0, fetch_o
         print("prep: clean clips on volume:", prep.remote())
         r = train.remote(name, steps, max_min)
         print("train result:", json.dumps(r, indent=1))
-    out = Path(name)
+    out = Path(__file__).resolve().parents[2] / "runs" / name
     out.mkdir(exist_ok=True)
     for f in ["ae.pt", "log.json", "latents.npz", "recon.npz"]:
         (out / f).write_bytes(b"".join(data.read_file(f"{name}/{f}")))
