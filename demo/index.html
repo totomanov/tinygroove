@@ -368,6 +368,9 @@ const FLAVOUR = {
 const flavour = () => FLAVOUR[$("#genre").value] || [null, BRIGHT];
 const EVEN = .5;      // kicks keep an even tone whatever the genre; brighter kicks get thin
 const toneFor = (cat, f) => cat === "kick" ? EVEN : f[1];
+// Browsers keep the model files for a day. Change this whenever the files in models/ change, so that a returning
+// visitor never pairs this page with an older model.
+const MODEL = "?m=2";
 let meta, flow, dec, nCat, nTags;
 const S = { bpm:124, swing:.2, drive:.25, filter:.5, groove:0, sel:12, playing:false, pack:0 };
 const pads = LAYOUT.map((cat,i) => ({cat, i, noise:null, wave:null, buf:null, knobs:[null,toneFor(cat,[null,BRIGHT]),null], level:LEVEL[cat]||.7, dirty:false}));
@@ -379,7 +382,7 @@ function knobValue(cat, k, v){ const [lo,mid,hi] = meta.knob_range[cat].map(r=>r
 function tagIndex(kind, value){ const i = meta.tags.indexOf(kind+":"+value); return i<0 ? nTags : i; }
 
 async function boot(){
-  meta = await (await fetch("models/meta.json")).json();
+  meta = await (await fetch("models/meta.json"+MODEL)).json();
   nCat = meta.categories.length; nTags = meta.tags.length;
   fillPick("genre","any genre","genre:","classic Chicago house"); fillPick("machine","any machine","source:","");
   ort.env.wasm.wasmPaths = new URL("vendor/", location.href).href;
@@ -388,9 +391,9 @@ async function boot(){
   if(!gpu){ ort.env.wasm.numThreads = Math.min(8, navigator.hardwareConcurrency||4); ort.env.wasm.proxy = true; }
   say("loading 3.2 million drummers…");
   const eps = gpu ? ["webgpu","wasm"] : ["wasm"];
-  try { flow = await ort.InferenceSession.create("models/flow.onnx", {executionProviders:eps}); }
-  catch(e){ console.warn("first backend failed:", e); flow = await ort.InferenceSession.create("models/flow.onnx", {executionProviders:["wasm"]}); gpu=false; }
-  dec = await ort.InferenceSession.create("models/decoder.onnx", {executionProviders:["wasm"]});
+  try { flow = await ort.InferenceSession.create("models/flow.onnx"+MODEL, {executionProviders:eps}); }
+  catch(e){ console.warn("first backend failed:", e); flow = await ort.InferenceSession.create("models/flow.onnx"+MODEL, {executionProviders:["wasm"]}); gpu=false; }
+  dec = await ort.InferenceSession.create("models/decoder.onnx"+MODEL, {executionProviders:["wasm"]});
   S.backend = gpu ? "gpu" : "cpu";
   $("#regen").disabled = false;
   newPack();
