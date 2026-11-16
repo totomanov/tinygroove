@@ -6,9 +6,10 @@ renders/
 runs/*/*
 *.log
 
-# ...except the two checkpoints the browser export needs
-!runs/ae_v2/ae.pt
-!runs/flow_v1/flow.pt
+# ...except the shipped model: autoencoder, decoder and one-step generator
+!runs/v2/ae.pt
+!runs/v2/decoder.pt
+!runs/v2/flow_student.pt
 
 __pycache__/
 .venv/

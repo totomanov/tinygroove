@@ -1,94 +1,91 @@
-"""Simple checks and a listening set for a trained flow model.
+"""Checks for a trained generator, all measured on the audio it produces.
 
-Numbers: does a generated sound land in the asked category, does it pass the dataset gate, is it
-as varied as the teacher's sounds, is it a copy of a training sound, and do the knobs steer it.
+For every setting (model, number of steps), 64 sounds per drum type are generated from the type alone:
+  spread   how varied the brightness is, relative to the teacher's clips of that type (1.0 = as varied)
+  drift    how far the typical brightness sits from the teacher's, in octaves (0 = same)
+  drum     share judged to be the requested type, by the autoencoder's encoder and its classifier
+  gate     share that pass the dataset gate
+and, asking for the decay / brightness / pitch of real held-out sounds, how well each knob is followed.
+
+The "drum" score depends on the decoder as well as the generator: the same generator scored 0.68 through the
+spectral-only decoder and 0.95 through the adversarially trained one.
 """
 import numpy as np
 import torch
-from tinygroove.model.ae_train import brightness
-from tinygroove.model.flow_model import KNOBS
-from tinygroove.model.flow_train import pitch
 from tinygroove.data.process_dataset import process
+from tinygroove.model.ae_model import N, SR, D, K, frames_of
+from tinygroove.model.ae_train import brightness
+from tinygroove.model.flow import TOKENS, sample
 
-SWEEP_CATS = ("kick", "clap", "snare", "hat_closed", "hat_open", "tom")
-TAG_CATS = ("kick", "clap", "snare", "hat_closed")
-QS = (0.05, 0.275, 0.5, 0.725, 0.95)
+
+def pitch(audio, device, bs=1024):
+    """log2 of the strongest frequency between 30 Hz and 16 kHz, per clip (audio int16 [M, >=N])."""
+    out = []
+    f = torch.fft.rfftfreq(N, 1 / SR).to(device)
+    ok = (f >= 30) & (f <= 16000)
+    for i in range(0, len(audio), bs):
+        P = torch.fft.rfft(audio[i:i + bs, :N].to(device).float() / 32768).abs()
+        out.append(torch.log2(f[(P * ok).argmax(1)]))
+    return torch.cat(out)
 
 
-def _corr(a, b):
+def to16(y):
+    return (y / y.abs().amax(1, keepdim=True).clamp(min=1e-6) * 0.89 * 32767).short()
+
+
+def gate(y16):
+    """Dataset gate on int16 audio [B, N]. Returns (passed [B] bool, log2 length ms [B], 0 where failed)."""
+    info = [process(w[:, None])[1] for w in (y16.float() / 32768).cpu().numpy()]
+    ok = torch.tensor([not isinstance(i, str) for i in info])
+    return ok, torch.tensor([np.log2(i) if not isinstance(i, str) else 0.0 for i in info])
+
+
+def corr(a, b):
     a, b = a - a.mean(), b - b.mean()
     return float((a * b).sum() / (a.norm() * b.norm() + 1e-9))
 
 
+def judge_with(ae, n_cat, device):
+    """Which drum is this? Re-encode the audio (length taken from the gate) and ask the autoencoder's classifier."""
+    def judge(y16, log2_ms, ok):
+        ms = torch.where(ok, torch.exp2(log2_ms), torch.full_like(log2_ms, 300.0)).clamp(20, 1000).to(device)
+        z = ae.encode(y16.float() / 32768, frames_of(ms))
+        return ae.aux(z.flatten(1))[:, :n_cat].argmax(1)
+    return judge
+
+
 @torch.no_grad()
-def evaluate(flow, ae, scale, z, cats, tags, knobs, kmean, kstd, names, vocab, val_idx, train_idx, device,
-             per_cat=64, steps=24, cfg=2.0, seed=0):
+def score(make, judge, audio, cats, knobs_raw, kmean, kstd, val_idx, names, device, per_cat=64, seed=0):
+    """make(cat [B], knobs [B,3] standardized, kmask [B,3], generator) -> waveform [B, N]."""
     g = torch.Generator(device=device).manual_seed(seed)
     n_cat = len(names)
-    decode = lambda x: ae.decode((x * scale).clamp(-1, 1), generator=g)
-    stats, clips = {}, {}
-
-    # A. category only
     c = torch.arange(n_cat, device=device).repeat_interleave(per_cat)
-    x = flow.sample(c, steps=steps, cfg=cfg, generator=g)
-    y = decode(x)
-    pred = ae.aux((x * scale).clamp(-1, 1).flatten(1))[:, :n_cat].argmax(1)
-    stats["category_acc"] = float((pred == c).float().mean())
-    stats["category_acc_by_cat"] = {names[k]: round(float((pred == c)[c == k].float().mean()), 3) for k in range(n_cat)}
-    reasons = [process(w[:, None])[1] for w in y.cpu().numpy()]
-    stats["gate_pass"] = float(np.mean([not isinstance(r, str) for r in reasons]))
-    stats["gate_rejects"] = {r: reasons.count(r) for r in set(reasons) if isinstance(r, str)}
-    div = {}
-    zt = z[train_idx.to(device)].float()
-    ct = cats[train_idx.to(device)]
+    zero = torch.zeros(len(c), 3, device=device)
+    y16 = to16(make(c, zero, zero, g))
+    b = brightness(y16, device)
+    spread, drift = [], []
     for k in range(n_cat):
-        real = zt[ct == k][:per_cat].flatten(1)
-        gen = x[c == k].flatten(1)
-        div[names[k]] = round(float(torch.pdist(gen).mean() / torch.pdist(real).mean()), 3)
-    stats["diversity_vs_teacher_by_cat"] = div
-    stats["diversity_vs_teacher"] = float(np.mean(list(div.values())))
-    nn_gen = torch.cdist(x.flatten(1), zt.flatten(1)).min(1).values
-    nn_val = torch.cdist(z[val_idx.to(device)].float().flatten(1), zt.flatten(1)).min(1).values
-    stats["nearest_train_dist"] = dict(generated=float(nn_gen.median()), held_out_real=float(nn_val.median()),
-                                       generated_min=float(nn_gen.min()))
-    for k in range(n_cat):
-        for i in range(8):
-            clips[f"category/{names[k]}_{i}"] = y[k * per_cat + i]
+        real = brightness(audio[torch.nonzero(cats == k)[:, 0][:512]], device)
+        spread.append(float(b[c == k].std() / real.std())); drift.append(abs(float(b[c == k].median() - real.median())))
+    ok, ln = gate(y16)
+    out = dict(spread=round(float(np.mean(spread)), 3), drift=round(float(np.mean(drift)), 3),
+               drum=round(float((judge(y16, ln, ok) == c).float().mean()), 3), gate=round(float(ok.float().mean()), 3))
+    idx = val_idx[:768]
+    want = (knobs_raw[idx] - kmean) / kstd
+    y16 = to16(make(cats[idx], want, torch.ones_like(want), g))
+    ok, ln = gate(y16)
+    got = (torch.stack([ln.to(device), brightness(y16, device), pitch(y16, device)], 1) - kmean) / kstd
+    ok = ok.to(device)
+    out["knobs"] = [round(corr(want[ok, i], got[ok, i]), 3) for i in range(3)]
+    return out
 
-    # B. knobs: ask for the knob values of real held-out sounds, measure what comes out
-    idx = val_idx.to(device)
-    x = flow.sample(cats[idx], knobs=knobs[idx], kmask=torch.ones(len(idx), 3, device=device),
-                    steps=steps, cfg=cfg, generator=g)
-    y = decode(x)
-    y16 = (y.clamp(-1, 1) * 32767).short()
-    length = [process(w[:, None])[1] for w in y.cpu().numpy()]
-    ok = torch.tensor([not isinstance(l, str) for l in length], device=device)
-    dec = torch.tensor([np.log2(l) if not isinstance(l, str) else 0.0 for l in length], device=device)
-    got = torch.stack([dec.float(), brightness(y16, device), pitch(y16, device)], 1)
-    got = (got - kmean) / kstd
-    stats["knob_corr"] = {n: round(_corr(knobs[idx][ok, i], got[ok, i]), 3) for i, n in enumerate(KNOBS)}
 
-    # C. listening: knob sweeps and tags, each row from one fixed noise
-    for name in SWEEP_CATS:
-        k = names.index(name)
-        q = torch.quantile(knobs[cats == k].float(), torch.tensor(QS, device=device), dim=0)    # [5, 3]
-        for n in range(2):
-            noise = torch.randn(1, *x.shape[1:], device=device, generator=g).expand(len(QS), -1, -1)
-            for i, kn in enumerate(KNOBS):
-                kv, km = torch.zeros(len(QS), 3, device=device), torch.zeros(len(QS), 3, device=device)
-                kv[:, i], km[:, i] = q[:, i], 1
-                w = decode(flow.sample(torch.full((len(QS),), k, device=device), knobs=kv, kmask=km,
-                                       steps=steps, cfg=cfg, noise=noise))
-                for j in range(len(QS)):
-                    clips[f"sweep_{kn}/{name}_n{n}_{j + 1}of{len(QS)}"] = w[j]
-    for name in TAG_CATS:
-        k = names.index(name)
-        src = [i for i, v in enumerate(vocab) if v.startswith("source:")]
-        used = tags[cats == k]
-        top = sorted(src, key=lambda i: -int((used == i).sum()))[:6]
-        noise = torch.randn(1, *x.shape[1:], device=device, generator=g).expand(len(top) + 1, -1, -1)
-        tg = torch.tensor([[len(vocab)]] + [[i] for i in top], device=device)
-        w = decode(flow.sample(torch.full((len(tg),), k, device=device), tags=tg, steps=steps, cfg=cfg, noise=noise))
-        for j, label in enumerate(["no tag"] + [vocab[i].split(":", 1)[1] for i in top]):
-            clips[f"tags/{name}_{j}_{label.replace(' ', '_').replace('/', '-')}"] = w[j]
-    return stats, clips
+def maker(flow, dec, scale, lmean, lstd, steps, student, n_tags, device):
+    """Generator + decoder -> make(). The sound's length comes from the generated length token."""
+    def make(cat, knobs, kmask, g):
+        B = len(cat)
+        tags = torch.full((B, 4), n_tags, device=device)
+        x = sample(flow, cat, tags, knobs, kmask, steps, torch.randn(B, TOKENS, D, device=device, generator=g), student)
+        ms = torch.exp2((x[:, K, 0] * lstd + lmean).clamp(4.5, 10.0))
+        return dec((x[:, :K] * scale).clamp(-1, 1), frames_of(ms))
+    return make

@@ -82,7 +82,7 @@ button,select{font:inherit;color:inherit}
 
 .deck{display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:20px}
 .deck > section{min-width:0}
-@media (max-width:820px){ .deck{grid-template-columns:minmax(0,1fr)} .pad{font-size:11px; padding:5px} .knob{width:48px;height:48px} .k output{min-width:0} .unit{transform:none; padding:18px 14px 22px} .sticker{margin-left:0} }
+@media (max-width:820px){ .deck{grid-template-columns:minmax(0,1fr)} .pad{font-size:11px; padding:5px} .knob{width:48px;height:48px} .k output{min-width:0} .unit{transform:none; padding:18px 14px 22px} .sticker{display:none} }
 
 /* LCD */
 .lcd{
@@ -212,7 +212,7 @@ button,select{font:inherit;color:inherit}
   <header class="brand">
     <h1>tiny<b>groove</b> TG-16</h1>
     <p>dream sampler for house drums</p>
-    <div class="sticker">contains 5.3 million very small drummers. do not shake.</div>
+    <div class="sticker">contains 3.2 million very small drummers. do not shake.</div>
   </header>
 
   <div class="deck">
@@ -266,14 +266,14 @@ button,select{font:inherit;color:inherit}
   <header><h2>What is this thing?</h2><span>TG-16 owner's manual</span></header>
   <p class="lead">A drum machine with no samples inside. Every sound is made from scratch in your browser by a small neural network, each time you press New pack. Nothing is sent to a server.</p>
 
-  <div class="flowchart" role="img" aria-label="Noise goes into the generator, which runs 16 steps and produces 512 numbers; the decoder turns those into one second of sound.">
-    <div>noise<small>512 numbers</small></div><div>generator<small>16 steps</small></div><div>sound code<small>32 &times; 16 numbers</small></div><div>decoder<small>1 pass</small></div><div>drum<small>1 second</small></div>
+  <div class="flowchart" role="img" aria-label="Noise goes into the generator, which turns it into a sound code of 320 numbers in one step; the decoder turns that into up to one second of sound.">
+    <div>noise<small>336 numbers</small></div><div>generator<small>1 step</small></div><div>sound code<small>20 &times; 16 numbers</small></div><div>decoder<small>1 pass</small></div><div>drum<small>1 second</small></div>
   </div>
 
   <div class="cols">
     <div>
       <h3>How a drum is made</h3>
-      <p>Each pad starts as 512 random numbers. A generator model nudges that noise sixteen times toward the drum you asked for: a kick, say, in a deep house flavour, a little longer than usual. A second, smaller model turns the result into one second of audio.</p>
+      <p>Each pad starts as 336 random numbers. A generator model turns that noise, in a single step, into the drum you asked for: a kick, say, in a deep house flavour, a little longer than usual. A second, smaller model turns the result into one second of audio.</p>
       <p>All sixteen pads are made together, in about a second on a recent laptop.</p>
       <p>Turning a knob or changing genre keeps each pad's noise and changes only the request, so the sound shifts but stays recognisably the same drum. New pack rolls fresh noise for everything.</p>
 
@@ -286,10 +286,11 @@ button,select{font:inherit;color:inherit}
 
       <h3>How it was built</h3>
       <ol>
-        <li>A large text-to-audio model, Stable Audio 3 (small-sfx), was asked for 50,004 one-second drum hits. The prompts were built from 172 words, each tested beforehand to check it changed the sound.</li>
-        <li>A simple gate threw out clips that were clipped, silent or contained two hits. 48,741 remained.</li>
-        <li>An autoencoder learned to squeeze each sound into 32 &times; 16 numbers and back again. Its decoder half is the one running here.</li>
-        <li>A flow-matching model learned to produce those numbers from noise, given the drum type, the prompt words and the measured knobs.</li>
+        <li>A large text-to-audio model, Stable Audio 3 (small-sfx), was asked for 103,731 one-second drum hits. The prompts were built from 172 words, each tested beforehand to check it changed the sound.</li>
+        <li>A simple gate threw out clips that were clipped, silent or contained two hits. 100,857 remained.</li>
+        <li>An autoencoder learned to squeeze each sound into 20 &times; 16 numbers, plus its length, and back again. Its decoder half is the one running here.</li>
+        <li>A flow-matching model learned to produce those numbers from noise in sixteen small steps, given the drum type, the prompt words and the measured knobs.</li>
+        <li>A model half its size was then taught to make the whole journey in one step. That one is the generator running here.</li>
         <li>Both were exported to ONNX and run on this page with ONNX Runtime Web, on your graphics card where the browser allows it.</li>
       </ol>
 
@@ -300,13 +301,13 @@ button,select{font:inherit;color:inherit}
     <aside>
       <h3>Specifications</h3>
       <dl>
-        <dt>generator</dt><dd>4.24 million parameters</dd>
-        <dt>decoder</dt><dd>1.02 million parameters</dd>
-        <dt>download</dt><dd>22 MB for both</dd>
+        <dt>generator</dt><dd>2.23 million parameters</dd>
+        <dt>decoder</dt><dd>0.98 million parameters</dd>
+        <dt>download</dt><dd>14 MB for both</dd>
         <dt>output</dt><dd>1 s, mono, 44.1 kHz</dd>
         <dt>drums</dt><dd>16 types</dd>
-        <dt>trained on</dt><dd>48,741 clips from the teacher</dd>
-        <dt>training</dt><dd>85 + 19 minutes on one GPU</dd>
+        <dt>trained on</dt><dd>100,857 clips from the teacher</dd>
+        <dt>training</dt><dd>about 90 GPU-minutes</dd>
         <dt>samples inside</dt><dd>none</dd>
       </dl>
       <span class="scrawl" aria-hidden="true">it really is this small!</span>
@@ -385,7 +386,7 @@ async function boot(){
   let gpu = false;
   try { gpu = !!(navigator.gpu && await navigator.gpu.requestAdapter()); } catch(e){}
   if(!gpu){ ort.env.wasm.numThreads = Math.min(8, navigator.hardwareConcurrency||4); ort.env.wasm.proxy = true; }
-  say("loading 5.3 million drummers…");
+  say("loading 3.2 million drummers…");
   const eps = gpu ? ["webgpu","wasm"] : ["wasm"];
   try { flow = await ort.InferenceSession.create("models/flow.onnx", {executionProviders:eps}); }
   catch(e){ console.warn("first backend failed:", e); flow = await ort.InferenceSession.create("models/flow.onnx", {executionProviders:["wasm"]}); gpu=false; }
@@ -396,25 +397,28 @@ async function boot(){
 }
 
 async function sample(list, onStep){
-  const B=list.length, K=meta.K, D=meta.D, n=K*D, steps=16, cfg = 2.2, two = cfg!==1, BB = two?2*B:B;
+  // One step: noise goes in with the request, and the generator answers with where to move it. The result is the
+  // sound code (meta.tokens x D numbers) plus one last token whose first number is the sound's length.
+  const B=list.length, K=meta.K, D=meta.D, n=K*D, T=meta.tokens, N=meta.n;
   const x=new Float32Array(B*n); list.forEach((p,b)=>x.set(p.noise,b*n));
-  const cat=new BigInt64Array(BB).fill(BigInt(nCat)), tags=new BigInt64Array(BB*4).fill(BigInt(nTags));
-  const knobs=new Float32Array(BB*3), kmask=new Float32Array(BB*3);
+  const cat=new BigInt64Array(B), tags=new BigInt64Array(B*4).fill(BigInt(nTags));
+  const knobs=new Float32Array(B*3), kmask=new Float32Array(B*3);
   const g=tagIndex("genre",$("#genre").value), m=tagIndex("source",$("#machine").value);
   list.forEach((p,b)=>{ cat[b]=BigInt(meta.categories.indexOf(p.cat)); tags[b*4]=BigInt(g); tags[b*4+1]=BigInt(m);
     p.knobs.forEach((v,k)=>{ if(v!==null){ knobs[b*3+k]=knobValue(p.cat,k,v); kmask[b*3+k]=1; } }); });
-  const xx=new Float32Array(BB*n), t=new Float32Array(BB);
-  for(let s=0;s<steps;s++){
-    xx.set(x,0); if(two) xx.set(x,B*n); t.fill(s/steps);
-    const out = await flow.run({ x:new ort.Tensor("float32",xx,[BB,K,D]), t:new ort.Tensor("float32",t,[BB]),
-      cat:new ort.Tensor("int64",cat,[BB]), tags:new ort.Tensor("int64",tags,[BB,4]),
-      knobs:new ort.Tensor("float32",knobs,[BB,3]), kmask:new ort.Tensor("float32",kmask,[BB,3]) });
-    const v = out.v.data;
-    for(let i=0;i<B*n;i++){ const c=v[i], u=two?v[B*n+i]:c; x[i] += (u + cfg*(c-u))/steps; }
-    onStep && onStep((s+1)/steps);
+  const v = (await flow.run({ x:new ort.Tensor("float32",x,[B,K,D]), t:new ort.Tensor("float32",new Float32Array(B),[B]),
+    dt:new ort.Tensor("float32",new Float32Array(B).fill(1),[B]),                 // one jump, the whole way
+    cat:new ort.Tensor("int64",cat,[B]), tags:new ort.Tensor("int64",tags,[B,4]),
+    knobs:new ort.Tensor("float32",knobs,[B,3]), kmask:new ort.Tensor("float32",kmask,[B,3]) })).v.data;
+  onStep && onStep(.5);
+  const z=new Float32Array(B*T*D), frames=new Float32Array(B);
+  for(let b=0;b<B;b++){
+    for(let i=0;i<T*D;i++) z[b*T*D+i]=Math.max(-1,Math.min(1,(x[b*n+i]+v[b*n+i])*meta.scale));
+    const ms=Math.pow(2, Math.max(4.5, Math.min(10, (x[b*n+T*D]+v[b*n+T*D])*meta.len_std+meta.len_mean)));
+    frames[b]=ms*meta.sr/1000/128;                                               // length in decoder frames
   }
-  for(let i=0;i<x.length;i++) x[i]=Math.max(-1,Math.min(1,x[i]*meta.scale));
-  const w = (await dec.run({ z:new ort.Tensor("float32",x,[B,K,D]) })).wave.data, N=meta.n;
+  const w = (await dec.run({ z:new ort.Tensor("float32",z,[B,T,D]), frames:new ort.Tensor("float32",frames,[B]) })).wave.data;
+  onStep && onStep(1);
   list.forEach((p,b)=>{
     const y=new Float32Array(N); let peak=1e-6;
     for(let i=0;i<N;i++){ y[i]=w[b*N+i]; if(!isFinite(y[i])) y[i]=0; peak=Math.max(peak,Math.abs(y[i])); }
@@ -452,6 +456,8 @@ function reflavour(genre){      // genre change also resets every pad's length a
 let ctx, master, shaper, lop, hip, openGain=null;
 function audio(){
   if(ctx) return ctx;
+  // iOS: treat this as media playback, so the ring/silent switch does not mute the page
+  try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
   ctx=new AudioContext(); master=ctx.createGain(); shaper=ctx.createWaveShaper(); shaper.oversample="2x";
   const lim=ctx.createDynamicsCompressor(); lim.threshold.value=-6; lim.ratio.value=8; lim.attack.value=.003; lim.release.value=.12;
   lop=ctx.createBiquadFilter(); lop.type="lowpass"; lop.Q.value=1.2; hip=ctx.createBiquadFilter(); hip.type="highpass"; hip.Q.value=1.2;
@@ -515,7 +521,15 @@ pads.forEach(p=>{
   $("#pads").append(b);
 });
 for(let i=0;i<16;i++) $("#steps").append(document.createElement("i"));
-function hitPad(p){ select(p.i); if(p.buf){ audio().resume(); trigger(p, ctx.currentTime, 1); } }
+// Safari on iOS only lets sound start from a finished tap (touch-up, click, key), not from touch-down,
+// and suspends it again after a call or a trip to another app. So every finished gesture wakes the
+// audio, and a pad hit that arrived while it was asleep plays the moment it wakes.
+let waiting=null;
+function unlock(){ if(!ctx || ctx.state==="running") return;
+  ctx.resume().then(()=>{ if(waiting){ const p=waiting; waiting=null; trigger(p, ctx.currentTime, 1); } }).catch(()=>{}); }
+["touchend","pointerup","click","keydown"].forEach(ev=>addEventListener(ev, unlock, true));
+function hitPad(p){ select(p.i); if(!p.buf) return; audio();
+  if(ctx.state==="running") trigger(p, ctx.currentTime, 1); else { waiting=p; unlock(); } }
 function select(i){ S.sel=i; document.querySelectorAll(".pad").forEach((e,j)=>e.classList.toggle("sel",j===i)); showPadKnobs(); }
 addEventListener("keydown",e=>{ if(e.target.matches("select,.knob")||e.metaKey||e.ctrlKey||e.repeat) return;
   const i=KEYS.indexOf(e.key.toLowerCase()); if(i>=0) hitPad(pads[i]);

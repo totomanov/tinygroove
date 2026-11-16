@@ -7,6 +7,7 @@ One-time setup (yours to do, in your own terminal):
 Run:
     modal run -m tinygroove.data.modal_gen --n 600  --out renders/modal_test          # smoke test
     modal run -m tinygroove.data.modal_gen --n 10000 --out renders/dataset_v4         # first pass
+    modal run -m tinygroove.data.modal_gen --extend-to 6000 --out renders/dataset_v5 --no-fetch   # top up thin categories
     modal run -m tinygroove.data.modal_gen --n 50000 --out renders/dataset_v4         # extends it; done chunks are skipped
 
 The plan (prompts, seeds, matched sets) comes from gen_batch.plan(), the same as the Mac path.
@@ -88,9 +89,42 @@ def make_units(jobs):
     return units
 
 
+def extension(target, base):
+    """Jobs that bring every thin category up to `target` clean clips, continuing the prompt streams of `base`.
+
+    Each category's stream is deterministic, so the first clips repeat the base dataset: those are skipped, along
+    with the rest of a matched set that the base cut in half.
+    """
+    import json
+    from collections import Counter
+    from tinygroove.data.gen_batch import CATEGORIES, _stream
+    raw = [json.loads(l) for l in open(base / "meta.jsonl")]
+    have_raw = Counter(j["category"] for j in raw)
+    have_clean = Counter(json.loads(l)["category"] for l in open(base / "clean" / "meta.jsonl"))
+    last_set = {}
+    for j in raw:
+        last_set[j["category"]] = j.get("matched")
+    jobs = []
+    for c in CATEGORIES:
+        need = round((target - have_clean[c]) / 0.96)                 # about 4% are dropped by the gate
+        if need <= 0:
+            continue
+        gen = _stream(c, 0)
+        for _ in range(have_raw[c]):
+            next(gen)
+        j = next(gen)
+        while last_set[c] is not None and j.get("matched") == last_set[c]:
+            j = next(gen)
+        new = [j] + [next(gen) for _ in range(need - 1)]
+        print(f"  {c}: {have_clean[c]} clean -> +{len(new)} to render")
+        jobs += new
+    return jobs
+
+
 @app.local_entrypoint()
 def main(n: int = 600, out: str = "renders/modal_test", steps: int = 8, padding: float = 6.0,
-         only: str = "", fetch_only: bool = False):
+         only: str = "", fetch_only: bool = False, extend_to: int = 0, base: str = "renders/dataset_v4",
+         fetch: bool = True):
     import io, json, time, wave
     from pathlib import Path
     import numpy as np
@@ -98,7 +132,7 @@ def main(n: int = 600, out: str = "renders/modal_test", steps: int = 8, padding:
 
     out_dir = Path(out).resolve()
     run = out_dir.name
-    jobs = plan(n, set(filter(None, only.split(","))), 0)
+    jobs = extension(extend_to, Path(base)) if extend_to else plan(n, set(filter(None, only.split(","))), 0)
     units = make_units(jobs)
     # chunk ids are stable for a given plan prefix only within one n: name them by content
     import hashlib
@@ -118,6 +152,8 @@ def main(n: int = 600, out: str = "renders/modal_test", steps: int = 8, padding:
         print(f"rendered {done} new clips in {time.time() - t0:.0f}s wall, {gpu_s:.0f}s of GPU render time "
               f"({done / max(gpu_s, 1e-9):.1f} clips/s per GPU)")
 
+    if not fetch:
+        return
     # pull back and unpack
     have = set()
     meta_path = out_dir / "meta.jsonl"
